@@ -1,0 +1,80 @@
+<Page
+    x:Class="copilot_deneme.HomePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:copilot_deneme"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:lvc="using:LiveChartsCore.SkiaSharpView.WinUI"
+    mc:Ignorable="d">
+
+    <StackPanel>
+        <!-- Port bilgisi -->
+        <TextBlock
+            Text="{x:Bind _viewModel.PortInfoText, Mode=OneWay}"
+            FontSize="18"
+            FontWeight="Bold"
+            Margin="10"
+            HorizontalAlignment="Center"/>
+        
+        <!-- LDR Sensörü için Chart -->
+        <Border 
+            Margin="20,10,20,10"
+            BorderThickness="1"
+            BorderBrush="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+            CornerRadius="8">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <TextBlock 
+                    Text="LDR Sensör Deðerleri"
+                    FontSize="16"
+                    FontWeight="SemiBold"
+                    Margin="10,5"
+                    HorizontalAlignment="Center"/>
+                
+                <lvc:CartesianChart 
+                    Grid.Row="1"
+                    Series="{x:Bind _viewModel.LdrSeries, Mode=OneWay}"
+                    Width="600" 
+                    Height="300"
+                    AnimationsSpeed="00:00:00.100"
+                    EasingFunction="{x:Null}"
+                    Margin="10"/>
+            </Grid>
+        </Border>
+
+        <!-- Uzaklýk Sensörü için Chart -->
+        <Border 
+            Margin="20,10,20,20"
+            BorderThickness="1"
+            BorderBrush="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+            CornerRadius="8">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <TextBlock 
+                    Text="Uzaklýk Sensör Deðerleri"
+                    FontSize="16"
+                    FontWeight="SemiBold"
+                    Margin="10,5"
+                    HorizontalAlignment="Center"/>
+                
+                <lvc:CartesianChart 
+                    Grid.Row="1"
+                    Series="{x:Bind _viewModel.DistanceSeries, Mode=OneWay}"
+                    Width="600" 
+                    Height="300"
+                    AnimationsSpeed="00:00:00.100"
+                    EasingFunction="{x:Null}"
+                    Margin="10"/>
+            </Grid>
+        </Border>
+    </StackPanel>
+</Page>
