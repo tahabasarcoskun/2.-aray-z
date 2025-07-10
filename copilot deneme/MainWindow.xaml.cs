@@ -65,6 +65,16 @@ namespace copilot_deneme
                             });
                         }
                         break;
+                    
+                    case "test":
+                        if (AuthService.IsSignedIn)
+                        {
+                            DispatcherQueue.TryEnqueue(() =>
+                            {
+                                ContentFrame.Navigate(typeof(TestPage));
+                            });
+                        }
+                        break;
                         // Diðerleri...
                 }
             }

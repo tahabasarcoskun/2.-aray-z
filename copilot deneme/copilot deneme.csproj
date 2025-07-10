@@ -17,6 +17,9 @@
     <None Remove="Assets\teamlogo.png" />
     <None Remove="HomePage.xaml" />
     <None Remove="SettingPage.xaml" />
+    <None Remove="sitPage.xaml" />
+    <None Remove="sutPage.xaml" />
+    <None Remove="TestPage.xaml" />
   </ItemGroup>
 	
   <ItemGroup>
@@ -53,6 +56,21 @@
     <Content Update="Assets\teamlogo.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="sutPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="sitPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="TestPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="SettingPage.xaml">

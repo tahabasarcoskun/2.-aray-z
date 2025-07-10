@@ -32,6 +32,7 @@
                 <NavigationViewItem Content="Ana Sayfa" Icon="Manage" Tag="home" x:Name="HomeNavViewItem"/>
                 <NavigationViewItem Content="Profile" Icon="Contact" Tag="profile"/>
                 <NavigationViewItem Content="Port Ayarları" Icon="Setting" Tag="settings"/>
+                <NavigationViewItem Content="Test" Icon="Refresh" Tag="test"/>
             </NavigationView.MenuItems>
             <Frame x:Name="ContentFrame"/>
         </NavigationView>
