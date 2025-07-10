@@ -9,10 +9,22 @@
     mc:Ignorable="d">
 
     <Grid>
-        <SelectorBar x:Name="secim">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- SelectorBar -->
+        <SelectorBar x:Name="SelectorBar2" 
+                     Grid.Row="0"
+                     SelectionChanged="SelectorBar2_SelectionChanged">
             <SelectorBarItem x:Name="SIT" Text="SİT" IsSelected="True" />
             <SelectorBarItem x:Name="SUT" Text="SUT" />
         </SelectorBar>
-        <Frame x:Name="ContentFrame" IsNavigationStackEnabled="False" />
+
+        <!-- Navigation Frame -->
+        <Frame x:Name="ContentFrame" 
+               Grid.Row="1" 
+               IsNavigationStackEnabled="False"/>
     </Grid>
 </Page>

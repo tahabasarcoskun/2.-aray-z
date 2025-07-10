@@ -9,6 +9,7 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
@@ -27,5 +28,27 @@ namespace copilot_deneme
         {
             InitializeComponent();
         }
+        private void SelectorBar2_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
+        {
+            SelectorBarItem selectedItem = sender.SelectedItem;
+            int currentSelectedIndex = sender.Items.IndexOf(selectedItem);
+            Type pageType;
+
+            switch (currentSelectedIndex)
+            {
+                case 0:
+                    pageType = typeof(sitPage);
+                    break;
+                case 1:
+                    pageType = typeof(sutPage);
+                    break;
+                default:
+                    return;
+            }
+
+            // Frame içinde sayfa geçiþini gerçekleþtir
+            ContentFrame.Navigate(pageType, null, new SlideNavigationTransitionInfo());
+        }
+
     }
 }

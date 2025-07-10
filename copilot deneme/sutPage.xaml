@@ -9,6 +9,6 @@
     mc:Ignorable="d">
 
     <Grid>
-        <Button Content="Başlat"></Button>
+        <Button Content="Başlat" HorizontalAlignment="Center" VerticalAlignment="Center"/>
     </Grid>
 </Page>
