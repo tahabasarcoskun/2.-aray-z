@@ -15,6 +15,7 @@
   <ItemGroup>
     <None Remove="AccountPage.xaml" />
     <None Remove="Assets\teamlogo.png" />
+    <None Remove="ChartPage.xaml" />
     <None Remove="HomePage.xaml" />
     <None Remove="SettingPage.xaml" />
     <None Remove="sitPage.xaml" />
@@ -56,6 +57,11 @@
     <Content Update="Assets\teamlogo.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="ChartPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="sutPage.xaml">

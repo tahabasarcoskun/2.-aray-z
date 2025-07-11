@@ -56,6 +56,16 @@ namespace copilot_deneme
                         }
                         break;
                     
+                    case "profile":
+                        if (AuthService.IsSignedIn)
+                        {
+                            DispatcherQueue.TryEnqueue(() =>
+                            {
+                                ContentFrame.Navigate(typeof(ChartPage)); // ChatPage yerine ChartPage kullandým çünkü ChatPage yoktu
+                            });
+                        }
+                        break;
+                    
                     case "settings":
                         if (AuthService.IsSignedIn)
                         {

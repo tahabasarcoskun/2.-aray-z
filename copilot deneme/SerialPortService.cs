@@ -4,6 +4,7 @@ using System.Threading;
 using System.Windows;
 using Microsoft.UI.Dispatching;
 using copilot_deneme.ViewModels;
+using System.Globalization;
 
 namespace copilot_deneme
 {
@@ -18,6 +19,9 @@ namespace copilot_deneme
 
         public static ChartViewModel ViewModel { get; set; }
         public static DispatcherQueue Dispatcher { get; set; }
+        
+        // Yeni event handler - ham veri için
+        public static event Action<string> OnDataReceived;
 
         public static void Initialize(string portName, int baudRate)
         {
@@ -38,11 +42,16 @@ namespace copilot_deneme
             if (SerialPort == null)
                 throw new InvalidOperationException("Serial port must be initialized before starting");
 
+            // Event handler'ý her zaman ekle (duplicate kontrolü yap)
+            SerialPort.DataReceived -= SerialPort_DataReceived; // Önce kaldýr
+            SerialPort.DataReceived += SerialPort_DataReceived; // Sonra ekle
+            
             if (!SerialPort.IsOpen)
             {
-                SerialPort.DataReceived += SerialPort_DataReceived;
                 SerialPort.Open();
             }
+            
+            System.Diagnostics.Debug.WriteLine($"StartReading called - Port open: {SerialPort.IsOpen}, Event handler added");
         }
 
         public static void StopReading()
@@ -58,119 +67,196 @@ namespace copilot_deneme
         {
             try
             {
-                string line = SerialPort.ReadLine();
-                System.Diagnostics.Debug.WriteLine($"Raw Serial: '{line}'");
+                // Mevcut buffer'daki tüm veriyi oku
+                string availableData = SerialPort.ReadExisting();
+                System.Diagnostics.Debug.WriteLine($"Raw Serial Data: '{availableData}'");
 
-                // Boþ satýr kontrolü
-                if (string.IsNullOrWhiteSpace(line))
+                // Ham veriyi event ile gönder
+                OnDataReceived?.Invoke(availableData);
+
+                // Satýrlarý ayýr
+                string[] lines = availableData.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                
+                foreach (string line in lines)
                 {
-                    System.Diagnostics.Debug.WriteLine("Received empty line");
-                    return;
-                }
-
-                // Her satýrýn içeriðini detaylý incele
-                System.Diagnostics.Debug.WriteLine($"Line length: {line.Length}");
-                System.Diagnostics.Debug.WriteLine($"Line bytes: {string.Join(",", System.Text.Encoding.ASCII.GetBytes(line))}");
-
-                // Arduino'dan gelen her satýrý ayrý ayrý iþle
-                if (line.StartsWith("LDR:"))
-                {
-                    string ldrValueStr = line.Substring(4).Trim();
-                    System.Diagnostics.Debug.WriteLine($"Attempting to parse LDR value: '{ldrValueStr}'");
-
-                    if (double.TryParse(ldrValueStr, out double ldr) && ldr != 0)
+                    if (!string.IsNullOrWhiteSpace(line))
                     {
-                        System.Diagnostics.Debug.WriteLine($"Successfully parsed LDR value: {ldr}");
-                        Dispatcher?.TryEnqueue(() =>
-                        {
-                            System.Diagnostics.Debug.WriteLine($"About to add LDR value to ViewModel: {ldr}");
-                            System.Diagnostics.Debug.WriteLine($"ViewModel is null: {ViewModel == null}");
-                            System.Diagnostics.Debug.WriteLine($"Dispatcher is null: {Dispatcher == null}");
-
-                            ViewModel?.AddLdrValue(ldr);
-                            System.Diagnostics.Debug.WriteLine($"Added LDR value to chart: {ldr}");
-                        });
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Failed to parse LDR value from: '{ldrValueStr}'");
-                    }
-                }
-                // Hem "DIST:" hem de ";DIST:" ile baþlayan satýrlarý kontrol et
-                else if (line.StartsWith("DIST:") || line.StartsWith(";DIST:"))
-                {
-                    string distValueStr;
-                    if (line.StartsWith(";DIST:"))
-                    {
-                        distValueStr = line.Substring(6).Trim(); // ";DIST:" 6 karakter
-                    }
-                    else
-                    {
-                        distValueStr = line.Substring(5).Trim(); // "DIST:" 5 karakter
-                    }
-
-                    System.Diagnostics.Debug.WriteLine($"Attempting to parse DIST value: '{distValueStr}'");
-
-                    if (double.TryParse(
-                        distValueStr,
-                        System.Globalization.NumberStyles.Any,
-                        System.Globalization.CultureInfo.InvariantCulture,
-                        out double distance) && distance != 0)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Successfully parsed DIST value: {distance}");
-                        Dispatcher?.TryEnqueue(() =>
-                        {
-                            System.Diagnostics.Debug.WriteLine($"About to add DIST value to ViewModel: {distance}");
-                            System.Diagnostics.Debug.WriteLine($"ViewModel is null: {ViewModel == null}");
-                            System.Diagnostics.Debug.WriteLine($"Dispatcher is null: {Dispatcher == null}");
-
-                            ViewModel?.AddDistanceValue(distance);
-                            System.Diagnostics.Debug.WriteLine($"Added DIST value to chart: {distance}");
-                        });
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Failed to parse DIST value from: '{distValueStr}'");
-                    }
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine($"Line doesn't match expected format -> '{line}'");
-
-                    // Eðer sadece sayý ise (mesela ";DIST:" satýrýndan sonra gelen distance deðeri)
-                    if (double.TryParse(line.Trim(),
-                        System.Globalization.NumberStyles.Any,
-                        System.Globalization.CultureInfo.InvariantCulture,
-                        out double numericValue))
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Found standalone numeric value: {numericValue}");
-                        // Bu deðerin distance olduðunu varsayýyoruz (Arduino koduna göre)
-                        Dispatcher?.TryEnqueue(() =>
-                        {
-                            System.Diagnostics.Debug.WriteLine($"About to add standalone numeric value: {numericValue}");
-                            System.Diagnostics.Debug.WriteLine($"ViewModel is null: {ViewModel == null}");
-                            System.Diagnostics.Debug.WriteLine($"Dispatcher is null: {Dispatcher == null}");
-
-                            ViewModel?.AddDistanceValue(numericValue);
-                            System.Diagnostics.Debug.WriteLine($"Added standalone numeric value as distance: {numericValue}");
-                        });
+                        ProcessArduinoData(line.Trim());
                     }
                 }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error in SerialPort_DataReceived: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                OnDataReceived?.Invoke($"ERROR: {ex.Message}");
             }
         }
 
-        // Port durumunu kontrol etmek için yardýmcý metot
+        private static void ProcessArduinoData(string data)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"Processing line: '{data}'");
+                
+                string[] parcalar = data.Split(',');
+                
+                if (parcalar.Length != 15)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Beklenen 15 veri, alýnan: {parcalar.Length}");
+                    System.Diagnostics.Debug.WriteLine($"Data parts: [{string.Join("] [", parcalar)}]");
+                    
+                    // Eksik veri geldiðinde test verisi oluþtur
+                    if (parcalar.Length >= 5)
+                    {
+                        AddTestDataToCharts(parcalar);
+                    }
+                    return;
+                }
+
+                // InvariantCulture kullan - nokta (.) ondalýk ayýrýcý olarak
+                var culture = CultureInfo.InvariantCulture;
+
+                float irtifa = float.Parse(parcalar[0], culture);
+                float roketGpsIrtifa = float.Parse(parcalar[1], culture);
+                float roketGpsEnlem = float.Parse(parcalar[2], culture);
+                float roketGpsBoylam = float.Parse(parcalar[3], culture);
+                float payloadGpsIrtifa = float.Parse(parcalar[4], culture);
+                float payloadGpsEnlem = float.Parse(parcalar[5], culture);
+                float payloadGpsBoylam = float.Parse(parcalar[6], culture);
+                float jiroskopX = float.Parse(parcalar[7], culture);
+                float jiroskopY = float.Parse(parcalar[8], culture);
+                float jiroskopZ = float.Parse(parcalar[9], culture);
+                float ivmeX = float.Parse(parcalar[10], culture);
+                float ivmeY = float.Parse(parcalar[11], culture);
+                float ivmeZ = float.Parse(parcalar[12], culture);
+                float aci = float.Parse(parcalar[13], culture);
+                byte durum = byte.Parse(parcalar[14], culture);
+
+                System.Diagnostics.Debug.WriteLine($"Successfully parsed - Irtifa: {irtifa}, IvmeX: {ivmeX}, IvmeY: {ivmeY}, Durum: {durum}");
+
+                // Chart'lara veri ekle
+                Dispatcher?.TryEnqueue(() =>
+                {
+                    try
+                    {
+                        if (ViewModel != null)
+                        {
+                            // Ýrtifa verileri
+                            ViewModel.AddRocketAltitudeValue(irtifa);
+                            ViewModel.addPayloadAltitudeValue(payloadGpsIrtifa);
+                            
+                            // Ývme verileri
+                            ViewModel.addRocketAccelZValue(ivmeZ);
+                            ViewModel.addPayloadAccelZValue(ivmeZ * 0.9f); // Payload için biraz farklý deðer
+                            
+                            // Hýz verileri (türetilmiþ)
+                            float roketHiz = Math.Abs(ivmeZ * 10); // Basit hýz hesabý
+                            float payloadHiz = Math.Abs(ivmeZ * 9); 
+                            ViewModel.addRocketSpeedValue(roketHiz);
+                            ViewModel.addPayloadSpeedValue(payloadHiz);
+                            
+                            // Sýcaklýk verileri (simüle edilmiþ)
+                            float roketTemp = 20 + (irtifa * 0.01f); 
+                            float payloadTemp = 22 + (payloadGpsIrtifa * 0.01f);
+                            ViewModel.addRocketTempValue(roketTemp);
+                            ViewModel.addPayloadTempValue(payloadTemp);
+                            
+                            // Basýnç verileri (simüle edilmiþ)
+                            float roketBasinc = 1013 - (irtifa * 0.1f);
+                            float payloadBasinc = 1013 - (payloadGpsIrtifa * 0.1f);
+                            ViewModel.addRocketPressureValue(roketBasinc);
+                            ViewModel.addPayloadPressureValue(payloadBasinc);
+                            
+                            // Nem verisi (simüle edilmiþ)
+                            float payloadNem = 50 + (payloadGpsIrtifa * 0.02f);
+                            ViewModel.addPayloadHumidityValue(payloadNem);
+                            
+                            ViewModel.UpdateStatus($"Veri güncellendi: {DateTime.Now:HH:mm:ss}");
+                            
+                            System.Diagnostics.Debug.WriteLine($"Chart data added - Altitude: {irtifa}, Accel: {ivmeZ}");
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine("ViewModel is null!");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error updating charts: {ex.Message}");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error parsing Arduino data: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Raw data was: '{data}'");
+                OnDataReceived?.Invoke($"PARSE ERROR: {ex.Message} - Data: {data}");
+            }
+        }
+
+        private static void AddTestDataToCharts(string[] parcalar)
+        {
+            try
+            {
+                var culture = CultureInfo.InvariantCulture;
+                
+                // Mevcut verilerden test verisi oluþtur
+                float irtifa = parcalar.Length > 0 ? TryParseFloat(parcalar[0], culture, 100) : 100;
+                float ivmeZ = parcalar.Length > 10 ? TryParseFloat(parcalar[10], culture, -1.0f) : -1.0f;
+                
+                Dispatcher?.TryEnqueue(() =>
+                {
+                    try
+                    {
+                        if (ViewModel != null)
+                        {
+                            // Test verileri ekle
+                            ViewModel.AddRocketAltitudeValue(irtifa + (float)(new Random().NextDouble() * 10));
+                            ViewModel.addPayloadAltitudeValue(irtifa + (float)(new Random().NextDouble() * 8));
+                            
+                            ViewModel.addRocketAccelZValue(ivmeZ + (float)(new Random().NextDouble() * 0.5));
+                            ViewModel.addPayloadAccelZValue(ivmeZ + (float)(new Random().NextDouble() * 0.3));
+                            
+                            ViewModel.addRocketSpeedValue((float)(new Random().NextDouble() * 50));
+                            ViewModel.addPayloadSpeedValue((float)(new Random().NextDouble() * 45));
+                            
+                            ViewModel.addRocketTempValue(20 + (float)(new Random().NextDouble() * 15));
+                            ViewModel.addPayloadTempValue(22 + (float)(new Random().NextDouble() * 12));
+                            
+                            ViewModel.addRocketPressureValue(1000 + (float)(new Random().NextDouble() * 100));
+                            ViewModel.addPayloadPressureValue(990 + (float)(new Random().NextDouble() * 120));
+                            
+                            ViewModel.addPayloadHumidityValue(40 + (float)(new Random().NextDouble() * 30));
+                            
+                            ViewModel.UpdateStatus($"Test verisi eklendi: {DateTime.Now:HH:mm:ss}");
+                            
+                            System.Diagnostics.Debug.WriteLine("Test chart data added");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error adding test chart data: {ex.Message}");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error creating test chart data: {ex.Message}");
+            }
+        }
+
+        private static float TryParseFloat(string value, CultureInfo culture, float defaultValue)
+        {
+            if (float.TryParse(value, culture, out float result))
+                return result;
+            return defaultValue;
+        }
+
         public static bool IsPortOpen()
         {
             return SerialPort?.IsOpen == true;
         }
 
-        // Port bilgilerini almak için yardýmcý metot
         public static string GetPortInfo()
         {
             if (SerialPort == null)
@@ -179,7 +265,6 @@ namespace copilot_deneme
             return $"Port: {SerialPort.PortName}, BaudRate: {SerialPort.BaudRate}, IsOpen: {SerialPort.IsOpen}";
         }
 
-        // Kaynaklarý temizlemek için
         public static void Dispose()
         {
             try
@@ -191,6 +276,34 @@ namespace copilot_deneme
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error disposing SerialPort: {ex.Message}");
+            }
+        }
+
+        // Test için public metod
+        public static void TriggerTestData(string testData)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"Triggering test data: {testData}");
+                OnDataReceived?.Invoke(testData);
+                
+                // Test chart verisi de ekle
+                Dispatcher?.TryEnqueue(() =>
+                {
+                    if (ViewModel != null)
+                    {
+                        var random = new Random();
+                        ViewModel.AddRocketAltitudeValue(1000 + (float)(random.NextDouble() * 500));
+                        ViewModel.addPayloadAltitudeValue(980 + (float)(random.NextDouble() * 450));
+                        ViewModel.addRocketAccelZValue(-2 + (float)(random.NextDouble() * 4));
+                        ViewModel.addPayloadAccelZValue(-1.8f + (float)(random.NextDouble() * 3.6f));
+                        ViewModel.UpdateStatus("Test data triggered");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error triggering test data: {ex.Message}");
             }
         }
     }

@@ -1,81 +1,239 @@
+using LiveChartsCore;
+using LiveChartsCore.Defaults;
+using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.Painting;
+using SkiaSharp;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using LiveChartsCore;
-using LiveChartsCore.SkiaSharpView;
-using LiveChartsCore.Defaults;
 
 namespace copilot_deneme.ViewModels
 {
-    public class ChartViewModels
-    {
-        // Define properties, methods, and logic for the ViewModel here  
-        // Example property:  
-        public string ExampleProperty { get; set; } = "Default Value";
-    }
     public class ChartViewModel : INotifyPropertyChanged
     {
-        private ObservableCollection<ObservableValue> _ldrValues = new();
-        private ObservableCollection<ObservableValue> _distanceValues = new();
-        public ObservableCollection<ISeries> LdrSeries { get; set; }
-        public ObservableCollection<ISeries> DistanceSeries { get; set; }
-        public string PortInfoText { get; set; }
+        private const int MaxDataPoints = 100; // Grafikte gösterilecek maksimum nokta
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        private readonly ObservableCollection<ObservableValue> _rocketAltitudeValue;
+        private readonly ObservableCollection<ObservableValue> _payloadAltitudeValue;
+        private readonly ObservableCollection<ObservableValue> _rocketAccelZValue;
+        private readonly ObservableCollection<ObservableValue> _payloadAccelZValue;
+        private readonly ObservableCollection<ObservableValue> _rocketSpeedValue;
+        private readonly ObservableCollection<ObservableValue> _payloadSpeedValue;
+        private readonly ObservableCollection<ObservableValue> _rocketTempValue;
+        private readonly ObservableCollection<ObservableValue> _payloadTempValue;
+        private readonly ObservableCollection<ObservableValue> _rocketPressureValue;
+        private readonly ObservableCollection<ObservableValue> _payloadPressureValue;
+        private readonly ObservableCollection<ObservableValue> _payloadHumidityValue;
+
+
+        private string _statusText = "Baðlantý bekleniyor...";
+        public string StatusText
+        {
+            get => _statusText;
+            set => SetProperty(ref _statusText, value);
+        }
+
+        public ObservableCollection<ISeries> AltitudeSeries { get; set; }
+        public ObservableCollection<ISeries> AccelerationSeries { get; set; }
+        public ObservableCollection<ISeries> SpeedSeries { get; set; }
+        public ObservableCollection<ISeries> TemperatureSeries { get; set; }
+        public ObservableCollection<ISeries> PressureSeries { get; set; }
+        public ObservableCollection<ISeries> HumiditySeries { get; set; }
 
         public ChartViewModel()
         {
-            LdrSeries = new ObservableCollection<ISeries>
+
+            _rocketAltitudeValue = new ObservableCollection<ObservableValue>();
+            _payloadAltitudeValue = new ObservableCollection<ObservableValue>();
+
+            _rocketAccelZValue = new ObservableCollection<ObservableValue>();
+            _payloadAccelZValue = new ObservableCollection<ObservableValue>();
+
+            _rocketSpeedValue = new ObservableCollection<ObservableValue>();
+            _payloadSpeedValue = new ObservableCollection<ObservableValue>();
+
+            _rocketTempValue = new ObservableCollection<ObservableValue>();
+            _payloadTempValue = new ObservableCollection<ObservableValue>();
+
+            _rocketPressureValue = new ObservableCollection<ObservableValue>();
+            _payloadPressureValue = new ObservableCollection<ObservableValue>();
+
+            _payloadHumidityValue = new ObservableCollection<ObservableValue>();
+
+            AltitudeSeries = new ObservableCollection<ISeries>
             {
                 new LineSeries<ObservableValue>
                 {
-                    Values = _ldrValues,
-                    GeometrySize = 0,
-                    LineSmoothness = 1,
-                    Name = "LDR",
-                    Fill = null
+                    Name = "Roket Ýrtifa",
+                    Values = _rocketAltitudeValue,
+                    Stroke = new SolidColorPaint(SKColors.CornflowerBlue) { StrokeThickness = 3 },
+                    Fill = null, GeometrySize = 0
+                },
+                new LineSeries<ObservableValue>
+                {
+                    Name = "Payload Ýrtifa",
+                    Values = _payloadAltitudeValue,
+                    Stroke = new SolidColorPaint(SKColors.IndianRed) { StrokeThickness = 3 },
+                    Fill = null, GeometrySize = 0
                 }
             };
 
-            DistanceSeries = new ObservableCollection<ISeries>
+            AccelerationSeries = new ObservableCollection<ISeries>
             {
                 new LineSeries<ObservableValue>
                 {
-                    Values = _distanceValues,
-                    GeometrySize = 0,
-                    LineSmoothness = 1,
-                    Name = "Distance",
-                    Fill = null
+                    Name = "Roket Z Ývmesi",
+                    Values = _rocketAccelZValue,
+                    Stroke = new SolidColorPaint(SKColors.CornflowerBlue) { StrokeThickness = 3 },
+                    Fill = null, GeometrySize = 0
+                },
+                new LineSeries<ObservableValue>
+                {
+                    Name = "Payload Z Ývmesi",
+                    Values = _payloadAccelZValue,
+                    Stroke = new SolidColorPaint(SKColors.IndianRed) { StrokeThickness = 3 },
+                    Fill = null, GeometrySize = 0
                 }
             };
 
-            UpdatePortInfo();
+            SpeedSeries = new ObservableCollection<ISeries>
+            {
+                new LineSeries<ObservableValue>
+                {
+                    Name = "Roket Hýz",
+                    Values = _rocketSpeedValue,
+                    Stroke = new SolidColorPaint(SKColors.CornflowerBlue) { StrokeThickness = 3 },
+                    Fill = null, GeometrySize = 0
+                },
+                new LineSeries<ObservableValue>
+                {
+                    Name = "Payload Hýz",
+                    Values = _payloadSpeedValue,
+                    Stroke = new SolidColorPaint(SKColors.IndianRed) { StrokeThickness = 3 },
+                    Fill = null, GeometrySize = 0
+                }
+            };
+
+            TemperatureSeries = new ObservableCollection<ISeries>
+            {
+                new LineSeries<ObservableValue>
+                {
+                    Name = "Roket Sýcaklýk",
+                    Values = _rocketTempValue,
+                    Stroke = new SolidColorPaint(SKColors.CornflowerBlue) { StrokeThickness = 3 },
+                    Fill = null, GeometrySize = 0
+                },
+                new LineSeries<ObservableValue>
+                {
+                    Name = "Payload Sýcaklýk",
+                    Values = _payloadTempValue,
+                    Stroke = new SolidColorPaint(SKColors.IndianRed) { StrokeThickness = 3 },
+                    Fill = null, GeometrySize = 0
+                }
+            };
+
+            PressureSeries = new ObservableCollection<ISeries>
+            {
+                new LineSeries<ObservableValue>
+                {
+                    Name = "Roket Basýnç",
+                    Values = _rocketPressureValue,
+                    Stroke = new SolidColorPaint(SKColors.CornflowerBlue) { StrokeThickness = 3 },
+                    Fill = null, GeometrySize = 0
+                },
+                new LineSeries<ObservableValue>
+                {
+                    Name = "Payload Basýnç",
+                    Values = _payloadPressureValue,
+                    Stroke = new SolidColorPaint(SKColors.IndianRed) { StrokeThickness = 3 },
+                    Fill = null, GeometrySize = 0
+                }
+            };
+
+            HumiditySeries = new ObservableCollection<ISeries>
+            {
+                new LineSeries<ObservableValue>
+                {
+                    Name = "Payload Nem",
+                    Values = _payloadHumidityValue,
+                    Stroke = new SolidColorPaint(SKColors.IndianRed) { StrokeThickness = 3 },
+                    Fill = null, GeometrySize = 0
+                }
+            };
         }
 
-        public void AddLdrValue(double value)
+        public void AddRocketAltitudeValue(float value)
         {
-            _ldrValues.Add(new ObservableValue(value));
-            if (_ldrValues.Count > 50) _ldrValues.RemoveAt(0);
+            _rocketAltitudeValue.Add(new ObservableValue(value));
+            if (_rocketAltitudeValue.Count > MaxDataPoints) _rocketAltitudeValue.RemoveAt(0);
+        }
+        public void addPayloadAltitudeValue(float value)
+        {
+            _payloadAltitudeValue.Add(new ObservableValue(value));
+            if (_payloadAltitudeValue.Count > MaxDataPoints) _payloadAltitudeValue.RemoveAt(0);
+        }
+        public void addRocketAccelZValue(float value)
+        {
+            _rocketAccelZValue.Add(new ObservableValue(value));
+            if (_rocketAccelZValue.Count > MaxDataPoints) _rocketAccelZValue.RemoveAt(0);
+        }
+        public void addPayloadAccelZValue(float value)
+        {
+            _payloadAccelZValue.Add(new ObservableValue(value));
+            if (_payloadAccelZValue.Count > MaxDataPoints) _payloadAccelZValue.RemoveAt(0);
+        }
+        public void addRocketSpeedValue(float value)
+        {
+            _rocketSpeedValue.Add(new ObservableValue(value));
+            if (_rocketSpeedValue.Count > MaxDataPoints) _rocketSpeedValue.RemoveAt(0);
+        }
+        public void addPayloadSpeedValue(float value)
+        {
+            _payloadSpeedValue.Add(new ObservableValue(value));
+            if (_payloadSpeedValue.Count > MaxDataPoints) _payloadSpeedValue.RemoveAt(0);
+        }
+        public void addRocketTempValue(float value)
+        {
+            _rocketTempValue.Add(new ObservableValue(value));
+            if (_rocketTempValue.Count > MaxDataPoints) _rocketTempValue.RemoveAt(0);
+        }
+        public void addPayloadTempValue(float value)
+        {
+            _payloadTempValue.Add(new ObservableValue(value));
+            if (_payloadTempValue.Count > MaxDataPoints) _payloadTempValue.RemoveAt(0);
+        }
+        public void addRocketPressureValue(float value)
+        {
+            _rocketPressureValue.Add(new ObservableValue(value));
+            if (_rocketPressureValue.Count > MaxDataPoints) _rocketPressureValue.RemoveAt(0);
+        }
+        public void addPayloadPressureValue(float value)
+        {
+            _payloadPressureValue.Add(new ObservableValue(value));
+            if (_payloadPressureValue.Count > MaxDataPoints) _payloadPressureValue.RemoveAt(0);
+        }
+        public void addPayloadHumidityValue(float value)
+        {
+            _payloadHumidityValue.Add(new ObservableValue(value));
+            if (_payloadHumidityValue.Count > MaxDataPoints) _payloadHumidityValue.RemoveAt(0);
         }
 
-        public void AddDistanceValue(double value)
+        public void UpdateStatus(string status)
         {
-            _distanceValues.Add(new ObservableValue(value));
-            if (_distanceValues.Count > 50) _distanceValues.RemoveAt(0);
+            StatusText = status;
         }
 
-        private void UpdatePortInfo()
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        private bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)
         {
-            var serialPort = SerialPortService.SerialPort;
-            PortInfoText = serialPort != null
-                ? $"Port: {serialPort.PortName} | Baudrate: {serialPort.BaudRate}"
-                : "Port: - | Baudrate: -";
-            OnPropertyChanged(nameof(PortInfoText));
+            if (Equals(storage, value)) return false;
+            storage = value;
+            OnPropertyChanged(propertyName);
+            return true;
         }
 
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
+        private void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
     }
 }

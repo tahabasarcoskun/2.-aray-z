@@ -9,17 +9,17 @@ namespace copilot_deneme
     public sealed partial class SettingPage : Page
     {
         private ChartViewModel _viewModel;
+        
         public SettingPage()
         {
             this.InitializeComponent();
-                var viewModel = new ChartViewModel(); // Change ChartViewModels to ChartViewModel
+            var viewModel = new ChartViewModel();
             this.DataContext = viewModel;
-            _viewModel = new ChartViewModel();
-            SerialPortService.ViewModel = _viewModel; // Bu satýr çok önemli!
+            _viewModel = viewModel; // Ayný instance'ý kullan
+            
+            SerialPortService.ViewModel = _viewModel;
             SerialPortService.Dispatcher = DispatcherQueue.GetForCurrentThread();
-
-            SerialPortService.ViewModel = viewModel; // This now matches the expected type
-            SerialPortService.Dispatcher = DispatcherQueue.GetForCurrentThread();
+            
             PortComboBox.ItemsSource = SerialPort.GetPortNames();
             BaudRateComboBox.SelectedIndex = 0;
         }
@@ -34,24 +34,51 @@ namespace copilot_deneme
 
             try
             {
+                // Önce mevcut baðlantýyý kapat
                 if (SerialPortService.SerialPort != null && SerialPortService.SerialPort.IsOpen)
-                    SerialPortService.SerialPort.Close();
+                {
+                    SerialPortService.StopReading();
+                }
 
+                // Yeni port oluþtur ve aç
                 SerialPortService.SerialPort = new SerialPort(portName, baudRate);
                 SerialPortService.SerialPort.Open();
+                
+                // ÖNEMLÝ: Veri okumayý baþlat
+                SerialPortService.StartReading();
 
-                DispatcherQueue.TryEnqueue(() =>
+                DispatcherQueue.GetForCurrentThread().TryEnqueue(() =>
                 {
-                    // All UI code here
-                    StatusText.Text = "Port açýldý";
+                    StatusText.Text = $"Port açýldý: {portName} - {baudRate}";
+                });
+                
+                System.Diagnostics.Debug.WriteLine($"Port opened and reading started: {portName}");
+            }
+            catch (System.Exception ex)
+            {
+                DispatcherQueue.GetForCurrentThread().TryEnqueue(() =>
+                {
+                    StatusText.Text = $"Hata: {ex.Message}";
+                });
+                System.Diagnostics.Debug.WriteLine($"Error opening port: {ex.Message}");
+            }
+        }
+        
+        private void ClosePort_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                SerialPortService.StopReading();
+                DispatcherQueue.GetForCurrentThread().TryEnqueue(() =>
+                {
+                    StatusText.Text = "Port kapatýldý";
                 });
             }
             catch (System.Exception ex)
             {
-                DispatcherQueue.TryEnqueue(() =>
+                DispatcherQueue.GetForCurrentThread().TryEnqueue(() =>
                 {
-                    // All UI code here
-                    StatusText.Text = $"Error: {ex.Message}";
+                    StatusText.Text = $"Hata: {ex.Message}";
                 });
             }
         }
