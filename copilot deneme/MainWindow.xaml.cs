@@ -30,7 +30,8 @@ namespace copilot_deneme
             this.InitializeComponent();
             DispatcherQueue.TryEnqueue(() =>
             {
-                ContentFrame.Navigate(typeof(AccountPage)); // ContentFrame ana Frame'iniz ise
+                // Giriþ ekranýný atla, doðrudan HomePage'e git
+                ContentFrame.Navigate(typeof(HomePage));
             });
         }
 
@@ -41,49 +42,35 @@ namespace copilot_deneme
                 switch (selectedItem.Tag)
                 {
                     case "home":
-                        // Eðer kullanýcý giriþ yapmadýysa HomePage'e yönlendirme!
-                        if (AuthService.IsSignedIn)
+                        // Giriþ kontrolünü kaldýr, doðrudan HomePage'e git
+                        DispatcherQueue.TryEnqueue(() =>
                         {
-                            DispatcherQueue.TryEnqueue(() =>
-                            {
-                                ContentFrame.Navigate(typeof(HomePage));
-                            });
-                        }
-                        else
-                        {
-                            // Ýsterseniz kullanýcýya uyarý gösterebilirsiniz
-                            // veya AccountPage'e yönlendirebilirsiniz
-                        }
+                            ContentFrame.Navigate(typeof(HomePage));
+                        });
                         break;
                     
                     case "profile":
-                        if (AuthService.IsSignedIn)
+                        // Giriþ kontrolünü kaldýr, doðrudan ChartPage'e git
+                        DispatcherQueue.TryEnqueue(() =>
                         {
-                            DispatcherQueue.TryEnqueue(() =>
-                            {
-                                ContentFrame.Navigate(typeof(ChartPage)); // ChatPage yerine ChartPage kullandým çünkü ChatPage yoktu
-                            });
-                        }
+                            ContentFrame.Navigate(typeof(ChartPage));
+                        });
                         break;
                     
                     case "settings":
-                        if (AuthService.IsSignedIn)
+                        // Giriþ kontrolünü kaldýr, doðrudan SettingPage'e git
+                        DispatcherQueue.TryEnqueue(() =>
                         {
-                            DispatcherQueue.TryEnqueue(() =>
-                            {
-                                ContentFrame.Navigate(typeof(SettingPage));
-                            });
-                        }
+                            ContentFrame.Navigate(typeof(SettingPage));
+                        });
                         break;
                     
                     case "test":
-                        if (AuthService.IsSignedIn)
+                        // Giriþ kontrolünü kaldýr, doðrudan TestPage'e git
+                        DispatcherQueue.TryEnqueue(() =>
                         {
-                            DispatcherQueue.TryEnqueue(() =>
-                            {
-                                ContentFrame.Navigate(typeof(TestPage));
-                            });
-                        }
+                            ContentFrame.Navigate(typeof(TestPage));
+                        });
                         break;
                         // Diðerleri...
                 }
