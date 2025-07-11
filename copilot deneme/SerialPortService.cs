@@ -136,36 +136,38 @@ namespace copilot_deneme
                 // Comma-separated formatýný iþle
                 string[] parcalar = data.Split(',');
                 
-                if (parcalar.Length < 15)
+                if (parcalar.Length < 16)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Beklenen en az 15 veri, alýnan: {parcalar.Length}");
+                    System.Diagnostics.Debug.WriteLine($"Beklenen 16 veri, alýnan: {parcalar.Length}");
                     return;
                 }
 
                 // InvariantCulture kullan - nokta (.) ondalýk ayýrýcý olarak
                 var culture = CultureInfo.InvariantCulture;
 
-                // Gelen verileri parse et
-                float irtifa = TryParseFloat(parcalar[0], culture, 0);
-                float roketGpsIrtifa = TryParseFloat(parcalar[1], culture, 0);
-                float roketGpsEnlem = TryParseFloat(parcalar[2], culture, 0);
-                float roketGpsBoylam = TryParseFloat(parcalar[3], culture, 0);
-                float payloadGpsIrtifa = TryParseFloat(parcalar[4], culture, 0);
-                float payloadGpsEnlem = TryParseFloat(parcalar[5], culture, 0);
-                float payloadGpsBoylam = TryParseFloat(parcalar[6], culture, 0);
-                float jiroskopX = TryParseFloat(parcalar[7], culture, 0);
-                float jiroskopY = TryParseFloat(parcalar[8], culture, 0);
-                float jiroskopZ = TryParseFloat(parcalar[9], culture, 0);
-                float ivmeX = TryParseFloat(parcalar[10], culture, 0);
-                float ivmeY = TryParseFloat(parcalar[11], culture, 0);
-                float ivmeZ = TryParseFloat(parcalar[12], culture, 0);
-                float aci = TryParseFloat(parcalar[13], culture, 0);
-                byte durum = (byte)TryParseFloat(parcalar[14], culture, 0);
+                // Arduino'dan gelen veri sýrasýna göre parse et
+                ushort paketSayaci = (ushort)TryParseFloat(parcalar[0], culture, 0);      // 0: paketSayaci
+                float irtifa = TryParseFloat(parcalar[1], culture, 0);                     // 1: irtifa (Roket Ýrtifa)
+                float roketGpsIrtifa = TryParseFloat(parcalar[2], culture, 0);             // 2: roketGpsIrtifa
+                float roketGpsEnlem = TryParseFloat(parcalar[3], culture, 0);              // 3: roketGpsEnlem
+                float roketGpsBoylam = TryParseFloat(parcalar[4], culture, 0);             // 4: roketGpsBoylam
+                float payloadGpsIrtifa = TryParseFloat(parcalar[5], culture, 0);           // 5: payloadGpsIrtifa (Payload Ýrtifa)
+                float payloadGpsEnlem = TryParseFloat(parcalar[6], culture, 0);            // 6: payloadGpsEnlem
+                float payloadGpsBoylam = TryParseFloat(parcalar[7], culture, 0);           // 7: payloadGpsBoylam
+                float jiroskopX = TryParseFloat(parcalar[8], culture, 0);                  // 8: jiroskopX
+                float jiroskopY = TryParseFloat(parcalar[9], culture, 0);                  // 9: jiroskopY
+                float jiroskopZ = TryParseFloat(parcalar[10], culture, 0);                 // 10: jiroskopZ
+                float ivmeX = TryParseFloat(parcalar[11], culture, 0);                     // 11: ivmeX
+                float ivmeY = TryParseFloat(parcalar[12], culture, 0);                     // 12: ivmeY
+                float ivmeZ = TryParseFloat(parcalar[13], culture, 0);                     // 13: ivmeZ (Z Ývmesi)
+                float aci = TryParseFloat(parcalar[14], culture, 0);                       // 14: aci
+                byte durum = (byte)TryParseFloat(parcalar[15], culture, 0);                // 15: durum
 
-                System.Diagnostics.Debug.WriteLine($"Successfully parsed - Irtifa: {irtifa}, IvmeZ: {ivmeZ}");
+                System.Diagnostics.Debug.WriteLine($"Successfully parsed - Roket Ýrtifa: {irtifa}, Payload Ýrtifa: {payloadGpsIrtifa}, Z Ývmesi: {ivmeZ}");
 
-                // Chart'lara veri ekle
-                UpdateCharts(irtifa, roketGpsIrtifa, payloadGpsIrtifa, ivmeZ, jiroskopX, jiroskopY, jiroskopZ, ivmeX, ivmeY, aci);
+                // Chart'lara doðru veri sýrasýyla ekle
+                UpdateCharts(irtifa, roketGpsIrtifa, payloadGpsIrtifa, ivmeZ, 
+                           jiroskopX, jiroskopY, jiroskopZ, ivmeX, ivmeY, aci, durum, paketSayaci);
             }
             catch (Exception ex)
             {
@@ -230,9 +232,9 @@ namespace copilot_deneme
             });
         }
 
-        private static void UpdateCharts(float irtifa, float roketGpsIrtifa, float payloadGpsIrtifa, 
+        private static void UpdateCharts(float roketIrtifa, float roketGpsIrtifa, float payloadIrtifa, 
             float ivmeZ, float jiroskopX, float jiroskopY, float jiroskopZ, 
-            float ivmeX, float ivmeY, float aci)
+            float ivmeX, float ivmeY, float aci, byte durum, ushort paketSayaci)
         {
             Dispatcher?.TryEnqueue(() =>
             {
@@ -240,39 +242,36 @@ namespace copilot_deneme
                 {
                     if (ViewModel != null)
                     {
-                        // Ýrtifa verileri
-                        ViewModel.AddRocketAltitudeValue(irtifa);
-                        ViewModel.addPayloadAltitudeValue(payloadGpsIrtifa);
+                        // Direkt sensör verilerini chart'lara ekle - hesaplama yok
+                        ViewModel.AddRocketAltitudeValue(roketIrtifa);        // Roket irtifa sensörü
+                        ViewModel.addPayloadAltitudeValue(payloadIrtifa);     // Payload irtifa sensörü
                         
-                        // Ývme verileri
-                        ViewModel.addRocketAccelZValue(ivmeZ);
-                        ViewModel.addPayloadAccelZValue(ivmeZ * 0.9f); // Payload için biraz farklý deðer
+                        ViewModel.addRocketAccelZValue(ivmeZ);                // Roket Z ivme sensörü
+                        ViewModel.addPayloadAccelZValue(ivmeZ);               // Payload Z ivme sensörü (ayný sensör)
                         
-                        // Hýz verileri (türetilmiþ)
-                        float roketHiz = Math.Abs(ivmeZ * 10); // Basit hýz hesabý
-                        float payloadHiz = Math.Abs(ivmeZ * 9); 
-                        ViewModel.addRocketSpeedValue(roketHiz);
-                        ViewModel.addPayloadSpeedValue(payloadHiz);
+                        // Diðer sensör verileri - direkt olarak
+                        ViewModel.addRocketSpeedValue(0);                     // Hýz sensörü yok, 0
+                        ViewModel.addPayloadSpeedValue(0);                    // Hýz sensörü yok, 0
                         
-                        // Sýcaklýk verileri (simüle edilmiþ)
-                        float roketTemp = 20 + (irtifa * 0.01f); 
-                        float payloadTemp = 22 + (payloadGpsIrtifa * 0.01f);
-                        ViewModel.addRocketTempValue(roketTemp);
-                        ViewModel.addPayloadTempValue(payloadTemp);
+                        ViewModel.addRocketTempValue(25);                     // Sýcaklýk sensörü yok, sabit deðer
+                        ViewModel.addPayloadTempValue(25);                    // Sýcaklýk sensörü yok, sabit deðer
                         
-                        // Basýnç verileri (simüle edilmiþ)
-                        float roketBasinc = 1013 - (irtifa * 0.1f);
-                        float payloadBasinc = 1013 - (payloadGpsIrtifa * 0.1f);
-                        ViewModel.addRocketPressureValue(roketBasinc);
-                        ViewModel.addPayloadPressureValue(payloadBasinc);
+                        ViewModel.addRocketPressureValue(1013);               // Basýnç sensörü yok, deniz seviyesi
+                        ViewModel.addPayloadPressureValue(1013);              // Basýnç sensörü yok, deniz seviyesi
                         
-                        // Nem verisi (simüle edilmiþ)
-                        float payloadNem = 50 + (payloadGpsIrtifa * 0.02f);
-                        ViewModel.addPayloadHumidityValue(payloadNem);
+                        ViewModel.addPayloadHumidityValue(50);                // Nem sensörü yok, sabit deðer
                         
-                        ViewModel.UpdateStatus($"Chart veri güncellendi: {DateTime.Now:HH:mm:ss}");
+                        ViewModel.UpdateStatus($"Sensör verisi: {DateTime.Now:HH:mm:ss} - Paket: {paketSayaci}");
                         
-                        System.Diagnostics.Debug.WriteLine($"Chart data added - Altitude: {irtifa}, Accel: {ivmeZ}");
+                        // Tüm sensör verilerini debug'a yazdýr
+                        System.Diagnostics.Debug.WriteLine($"SENSÖR VERÝLERÝ - Paket: {paketSayaci}");
+                        System.Diagnostics.Debug.WriteLine($"  Roket Ýrtifa: {roketIrtifa:F2} m");
+                        System.Diagnostics.Debug.WriteLine($"  Roket GPS Ýrtifa: {roketGpsIrtifa:F2} m");
+                        System.Diagnostics.Debug.WriteLine($"  Payload GPS Ýrtifa: {payloadIrtifa:F2} m");
+                        System.Diagnostics.Debug.WriteLine($"  Jiroskop X: {jiroskopX:F2}, Y: {jiroskopY:F2}, Z: {jiroskopZ:F2}");
+                        System.Diagnostics.Debug.WriteLine($"  Ývme X: {ivmeX:F2}, Y: {ivmeY:F2}, Z: {ivmeZ:F2}");
+                        System.Diagnostics.Debug.WriteLine($"  Açý: {aci:F2}°, Durum: {durum}");
+                        System.Diagnostics.Debug.WriteLine("---");
                     }
                     else
                     {
