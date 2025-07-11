@@ -11,7 +11,9 @@ namespace copilot_deneme
     public static class SerialPortService
     {
         private static SerialPort _serialPort;
-        public static SerialPort SerialPort
+        private static string _buffer = string.Empty;
+        
+        public static SerialPort SerialPort             
         {
             get => _serialPort;
             set => _serialPort = value;
@@ -74,16 +76,8 @@ namespace copilot_deneme
                 // Ham veriyi event ile gönder
                 OnDataReceived?.Invoke(availableData);
 
-                // Satýrlarý ayýr
-                string[] lines = availableData.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                
-                foreach (string line in lines)
-                {
-                    if (!string.IsNullOrWhiteSpace(line))
-                    {
-                        ProcessArduinoData(line.Trim());
-                    }
-                }
+                // Chart verilerini iþle (comma-separated format)
+                ProcessArduinoData(availableData);
             }
             catch (Exception ex)
             {
@@ -92,162 +86,209 @@ namespace copilot_deneme
             }
         }
 
-        private static void ProcessArduinoData(string data)
+        private static void ProcessArduinoData(string receivedData)
+        {
+            try
+            {
+                _buffer += receivedData;
+
+                // Satýrlarý ayýr
+                string[] lines = _buffer.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                
+                // Son satýr eksik olabilir, onu buffer'da býrak
+                if (!_buffer.EndsWith('\n') && !_buffer.EndsWith('\r') && lines.Length > 0)
+                {
+                    _buffer = lines[lines.Length - 1];
+                    Array.Resize(ref lines, lines.Length - 1);
+                }
+                else
+                {
+                    _buffer = string.Empty;
+                }
+
+                foreach (string line in lines)
+                {
+                    if (!string.IsNullOrWhiteSpace(line))
+                    {
+                        ProcessDataLine(line.Trim());
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in ProcessArduinoData: {ex.Message}");
+            }
+        }
+
+        private static void ProcessDataLine(string data)
         {
             try
             {
                 System.Diagnostics.Debug.WriteLine($"Processing line: '{data}'");
                 
+                // Önce key:value formatýný kontrol et
+                if (data.Contains(':'))
+                {
+                    ProcessKeyValueData(data);
+                    return;
+                }
+
+                // Comma-separated formatýný iþle
                 string[] parcalar = data.Split(',');
                 
-                if (parcalar.Length != 15)
+                if (parcalar.Length < 15)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Beklenen 15 veri, alýnan: {parcalar.Length}");
-                    System.Diagnostics.Debug.WriteLine($"Data parts: [{string.Join("] [", parcalar)}]");
-                    
-                    // Eksik veri geldiðinde test verisi oluþtur
-                    if (parcalar.Length >= 5)
-                    {
-                        AddTestDataToCharts(parcalar);
-                    }
+                    System.Diagnostics.Debug.WriteLine($"Beklenen en az 15 veri, alýnan: {parcalar.Length}");
                     return;
                 }
 
                 // InvariantCulture kullan - nokta (.) ondalýk ayýrýcý olarak
                 var culture = CultureInfo.InvariantCulture;
 
-                float irtifa = float.Parse(parcalar[0], culture);
-                float roketGpsIrtifa = float.Parse(parcalar[1], culture);
-                float roketGpsEnlem = float.Parse(parcalar[2], culture);
-                float roketGpsBoylam = float.Parse(parcalar[3], culture);
-                float payloadGpsIrtifa = float.Parse(parcalar[4], culture);
-                float payloadGpsEnlem = float.Parse(parcalar[5], culture);
-                float payloadGpsBoylam = float.Parse(parcalar[6], culture);
-                float jiroskopX = float.Parse(parcalar[7], culture);
-                float jiroskopY = float.Parse(parcalar[8], culture);
-                float jiroskopZ = float.Parse(parcalar[9], culture);
-                float ivmeX = float.Parse(parcalar[10], culture);
-                float ivmeY = float.Parse(parcalar[11], culture);
-                float ivmeZ = float.Parse(parcalar[12], culture);
-                float aci = float.Parse(parcalar[13], culture);
-                byte durum = byte.Parse(parcalar[14], culture);
+                // Gelen verileri parse et
+                float irtifa = TryParseFloat(parcalar[0], culture, 0);
+                float roketGpsIrtifa = TryParseFloat(parcalar[1], culture, 0);
+                float roketGpsEnlem = TryParseFloat(parcalar[2], culture, 0);
+                float roketGpsBoylam = TryParseFloat(parcalar[3], culture, 0);
+                float payloadGpsIrtifa = TryParseFloat(parcalar[4], culture, 0);
+                float payloadGpsEnlem = TryParseFloat(parcalar[5], culture, 0);
+                float payloadGpsBoylam = TryParseFloat(parcalar[6], culture, 0);
+                float jiroskopX = TryParseFloat(parcalar[7], culture, 0);
+                float jiroskopY = TryParseFloat(parcalar[8], culture, 0);
+                float jiroskopZ = TryParseFloat(parcalar[9], culture, 0);
+                float ivmeX = TryParseFloat(parcalar[10], culture, 0);
+                float ivmeY = TryParseFloat(parcalar[11], culture, 0);
+                float ivmeZ = TryParseFloat(parcalar[12], culture, 0);
+                float aci = TryParseFloat(parcalar[13], culture, 0);
+                byte durum = (byte)TryParseFloat(parcalar[14], culture, 0);
 
-                System.Diagnostics.Debug.WriteLine($"Successfully parsed - Irtifa: {irtifa}, IvmeX: {ivmeX}, IvmeY: {ivmeY}, Durum: {durum}");
+                System.Diagnostics.Debug.WriteLine($"Successfully parsed - Irtifa: {irtifa}, IvmeZ: {ivmeZ}");
 
                 // Chart'lara veri ekle
-                Dispatcher?.TryEnqueue(() =>
-                {
-                    try
-                    {
-                        if (ViewModel != null)
-                        {
-                            // Ýrtifa verileri
-                            ViewModel.AddRocketAltitudeValue(irtifa);
-                            ViewModel.addPayloadAltitudeValue(payloadGpsIrtifa);
-                            
-                            // Ývme verileri
-                            ViewModel.addRocketAccelZValue(ivmeZ);
-                            ViewModel.addPayloadAccelZValue(ivmeZ * 0.9f); // Payload için biraz farklý deðer
-                            
-                            // Hýz verileri (türetilmiþ)
-                            float roketHiz = Math.Abs(ivmeZ * 10); // Basit hýz hesabý
-                            float payloadHiz = Math.Abs(ivmeZ * 9); 
-                            ViewModel.addRocketSpeedValue(roketHiz);
-                            ViewModel.addPayloadSpeedValue(payloadHiz);
-                            
-                            // Sýcaklýk verileri (simüle edilmiþ)
-                            float roketTemp = 20 + (irtifa * 0.01f); 
-                            float payloadTemp = 22 + (payloadGpsIrtifa * 0.01f);
-                            ViewModel.addRocketTempValue(roketTemp);
-                            ViewModel.addPayloadTempValue(payloadTemp);
-                            
-                            // Basýnç verileri (simüle edilmiþ)
-                            float roketBasinc = 1013 - (irtifa * 0.1f);
-                            float payloadBasinc = 1013 - (payloadGpsIrtifa * 0.1f);
-                            ViewModel.addRocketPressureValue(roketBasinc);
-                            ViewModel.addPayloadPressureValue(payloadBasinc);
-                            
-                            // Nem verisi (simüle edilmiþ)
-                            float payloadNem = 50 + (payloadGpsIrtifa * 0.02f);
-                            ViewModel.addPayloadHumidityValue(payloadNem);
-                            
-                            ViewModel.UpdateStatus($"Veri güncellendi: {DateTime.Now:HH:mm:ss}");
-                            
-                            System.Diagnostics.Debug.WriteLine($"Chart data added - Altitude: {irtifa}, Accel: {ivmeZ}");
-                        }
-                        else
-                        {
-                            System.Diagnostics.Debug.WriteLine("ViewModel is null!");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error updating charts: {ex.Message}");
-                    }
-                });
+                UpdateCharts(irtifa, roketGpsIrtifa, payloadGpsIrtifa, ivmeZ, jiroskopX, jiroskopY, jiroskopZ, ivmeX, ivmeY, aci);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error parsing Arduino data: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"Raw data was: '{data}'");
-                OnDataReceived?.Invoke($"PARSE ERROR: {ex.Message} - Data: {data}");
             }
         }
 
-        private static void AddTestDataToCharts(string[] parcalar)
+        private static void ProcessKeyValueData(string data)
         {
-            try
+            var parts = data.Split(':', 2);
+            if (parts.Length != 2)
+                return;
+
+            string key = parts[0].Trim();
+            string valueStr = parts[1].Trim();
+
+            if (!float.TryParse(valueStr, NumberStyles.Any, CultureInfo.InvariantCulture, out float parsedValue))
+                return;
+
+            Dispatcher?.TryEnqueue(() =>
             {
-                var culture = CultureInfo.InvariantCulture;
-                
-                // Mevcut verilerden test verisi oluþtur
-                float irtifa = parcalar.Length > 0 ? TryParseFloat(parcalar[0], culture, 100) : 100;
-                float ivmeZ = parcalar.Length > 10 ? TryParseFloat(parcalar[10], culture, -1.0f) : -1.0f;
-                
-                Dispatcher?.TryEnqueue(() =>
+                switch (key)
                 {
-                    try
-                    {
-                        if (ViewModel != null)
-                        {
-                            // Test verileri ekle
-                            ViewModel.AddRocketAltitudeValue(irtifa + (float)(new Random().NextDouble() * 10));
-                            ViewModel.addPayloadAltitudeValue(irtifa + (float)(new Random().NextDouble() * 8));
-                            
-                            ViewModel.addRocketAccelZValue(ivmeZ + (float)(new Random().NextDouble() * 0.5));
-                            ViewModel.addPayloadAccelZValue(ivmeZ + (float)(new Random().NextDouble() * 0.3));
-                            
-                            ViewModel.addRocketSpeedValue((float)(new Random().NextDouble() * 50));
-                            ViewModel.addPayloadSpeedValue((float)(new Random().NextDouble() * 45));
-                            
-                            ViewModel.addRocketTempValue(20 + (float)(new Random().NextDouble() * 15));
-                            ViewModel.addPayloadTempValue(22 + (float)(new Random().NextDouble() * 12));
-                            
-                            ViewModel.addRocketPressureValue(1000 + (float)(new Random().NextDouble() * 100));
-                            ViewModel.addPayloadPressureValue(990 + (float)(new Random().NextDouble() * 120));
-                            
-                            ViewModel.addPayloadHumidityValue(40 + (float)(new Random().NextDouble() * 30));
-                            
-                            ViewModel.UpdateStatus($"Test verisi eklendi: {DateTime.Now:HH:mm:ss}");
-                            
-                            System.Diagnostics.Debug.WriteLine("Test chart data added");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error adding test chart data: {ex.Message}");
-                    }
-                });
-            }
-            catch (Exception ex)
+                    case "rocketAltitude":
+                        ViewModel?.AddRocketAltitudeValue(parsedValue);
+                        break;
+                    case "payloadAltitude":
+                        ViewModel?.addPayloadAltitudeValue(parsedValue);
+                        break;
+                    case "rocketAccelZ":
+                        ViewModel?.addRocketAccelZValue(parsedValue);
+                        break;
+                    case "payloadAccelZ":
+                        ViewModel?.addPayloadAccelZValue(parsedValue);
+                        break;
+                    case "rocketSpeed":
+                        ViewModel?.addRocketSpeedValue(parsedValue);
+                        break;
+                    case "payloadSpeed":
+                        ViewModel?.addPayloadSpeedValue(parsedValue);
+                        break;
+                    case "rocketTemperature":
+                        ViewModel?.addRocketTempValue(parsedValue);
+                        break;
+                    case "payloadTemperature":
+                        ViewModel?.addPayloadTempValue(parsedValue);
+                        break;
+                    case "rocketPressure":
+                        ViewModel?.addRocketPressureValue(parsedValue);
+                        break;
+                    case "payloadPressure":
+                        ViewModel?.addPayloadPressureValue(parsedValue);
+                        break;
+                    case "payloadHumidity":
+                        ViewModel?.addPayloadHumidityValue(parsedValue);
+                        break;
+                    default:
+                        System.Diagnostics.Debug.WriteLine($"Bilinmeyen anahtar alýndý: {key}");
+                        break;
+                }
+            });
+        }
+
+        private static void UpdateCharts(float irtifa, float roketGpsIrtifa, float payloadGpsIrtifa, 
+            float ivmeZ, float jiroskopX, float jiroskopY, float jiroskopZ, 
+            float ivmeX, float ivmeY, float aci)
+        {
+            Dispatcher?.TryEnqueue(() =>
             {
-                System.Diagnostics.Debug.WriteLine($"Error creating test chart data: {ex.Message}");
-            }
+                try
+                {
+                    if (ViewModel != null)
+                    {
+                        // Ýrtifa verileri
+                        ViewModel.AddRocketAltitudeValue(irtifa);
+                        ViewModel.addPayloadAltitudeValue(payloadGpsIrtifa);
+                        
+                        // Ývme verileri
+                        ViewModel.addRocketAccelZValue(ivmeZ);
+                        ViewModel.addPayloadAccelZValue(ivmeZ * 0.9f); // Payload için biraz farklý deðer
+                        
+                        // Hýz verileri (türetilmiþ)
+                        float roketHiz = Math.Abs(ivmeZ * 10); // Basit hýz hesabý
+                        float payloadHiz = Math.Abs(ivmeZ * 9); 
+                        ViewModel.addRocketSpeedValue(roketHiz);
+                        ViewModel.addPayloadSpeedValue(payloadHiz);
+                        
+                        // Sýcaklýk verileri (simüle edilmiþ)
+                        float roketTemp = 20 + (irtifa * 0.01f); 
+                        float payloadTemp = 22 + (payloadGpsIrtifa * 0.01f);
+                        ViewModel.addRocketTempValue(roketTemp);
+                        ViewModel.addPayloadTempValue(payloadTemp);
+                        
+                        // Basýnç verileri (simüle edilmiþ)
+                        float roketBasinc = 1013 - (irtifa * 0.1f);
+                        float payloadBasinc = 1013 - (payloadGpsIrtifa * 0.1f);
+                        ViewModel.addRocketPressureValue(roketBasinc);
+                        ViewModel.addPayloadPressureValue(payloadBasinc);
+                        
+                        // Nem verisi (simüle edilmiþ)
+                        float payloadNem = 50 + (payloadGpsIrtifa * 0.02f);
+                        ViewModel.addPayloadHumidityValue(payloadNem);
+                        
+                        ViewModel.UpdateStatus($"Chart veri güncellendi: {DateTime.Now:HH:mm:ss}");
+                        
+                        System.Diagnostics.Debug.WriteLine($"Chart data added - Altitude: {irtifa}, Accel: {ivmeZ}");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("ViewModel is null!");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error updating charts: {ex.Message}");
+                }
+            });
         }
 
         private static float TryParseFloat(string value, CultureInfo culture, float defaultValue)
         {
-            if (float.TryParse(value, culture, out float result))
+            if (float.TryParse(value?.Trim(), culture, out float result))
                 return result;
             return defaultValue;
         }
@@ -286,20 +327,7 @@ namespace copilot_deneme
             {
                 System.Diagnostics.Debug.WriteLine($"Triggering test data: {testData}");
                 OnDataReceived?.Invoke(testData);
-                
-                // Test chart verisi de ekle
-                Dispatcher?.TryEnqueue(() =>
-                {
-                    if (ViewModel != null)
-                    {
-                        var random = new Random();
-                        ViewModel.AddRocketAltitudeValue(1000 + (float)(random.NextDouble() * 500));
-                        ViewModel.addPayloadAltitudeValue(980 + (float)(random.NextDouble() * 450));
-                        ViewModel.addRocketAccelZValue(-2 + (float)(random.NextDouble() * 4));
-                        ViewModel.addPayloadAccelZValue(-1.8f + (float)(random.NextDouble() * 3.6f));
-                        ViewModel.UpdateStatus("Test data triggered");
-                    }
-                });
+                ProcessArduinoData(testData);
             }
             catch (Exception ex)
             {
