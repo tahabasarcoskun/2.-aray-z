@@ -9,55 +9,248 @@
     xmlns:lvc="using:LiveChartsCore.SkiaSharpView.WinUI"
     xmlns:viewmodels="using:copilot_deneme.ViewModels"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    UseLayoutRounding="True">
 
-    <Grid Background="Black">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+    <Page.Resources>
+        <Style x:Key="ChartCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource CardBrush}"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{StaticResource SecondaryBrush}"/>
+            <Setter Property="Shadow">
+                <Setter.Value>
+                    <ThemeShadow/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Margin" Value="8"/>
+        </Style>
+        
+        <Style x:Key="ChartTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,12,0,8"/>
+        </Style>
+        
+        <Style x:Key="ChartIconStyle" TargetType="FontIcon">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+    </Page.Resources>
+
+    <Grid>
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#1A1A2E" Offset="0"/>
+                <GradientStop Color="#16213E" Offset="1"/>
+            </LinearGradientBrush>
+        </Grid.Background>
+        
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <Border Grid.Row="0" 
+                Background="{StaticResource CardBrush}" 
+                CornerRadius="16" 
+                Margin="16,16,16,8"
+                BorderBrush="{StaticResource AccentBrush}" 
+                BorderThickness="1"
+                Translation="0,0,8">
+            <StackPanel Orientation="Horizontal" 
+                        HorizontalAlignment="Center" 
+                        Margin="20,16">
+                <FontIcon Glyph="&#xE9D2;" 
+                          Foreground="{StaticResource AccentBrush}" 
+                          FontSize="24" 
+                          Margin="0,0,12,0"/>
+                <TextBlock Text="Telemetri Grafikleri"
+                           FontSize="20"
+                           FontWeight="SemiBold"
+                           Foreground="White"/>
+                <Ellipse Width="12" Height="12" 
+                         Fill="{StaticResource SuccessBrush}" 
+                         Margin="12,0,0,0"/>
+            </StackPanel>
+        </Border>
 
-        <lvc:CartesianChart
-        x:Name="AltitudeSeries"
-        Grid.Column="0" Grid.Row="0"
-        Series="{x:Bind ViewModel.AltitudeSeries, Mode=OneWay}"
-        LegendPosition="Bottom"/>
+        <!-- Charts Grid -->
+        <Grid Grid.Row="1" Margin="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-        <lvc:CartesianChart
-        x:Name="AccelSeries"
-        Grid.Column="1" Grid.Row="0"
-        Series="{x:Bind ViewModel.AccelerationSeries, Mode=OneWay}"
-        LegendPosition="Bottom"/>
+            <!-- İrtifa Chart -->
+            <Border Grid.Column="0" Grid.Row="0" 
+                    Style="{StaticResource ChartCardStyle}"
+                    Translation="0,0,8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" 
+                                HorizontalAlignment="Center">
+                        <FontIcon Glyph="&#xE81C;" 
+                                  Foreground="{StaticResource AccentBrush}"
+                                  Style="{StaticResource ChartIconStyle}"/>
+                        <TextBlock Text="İrtifa (m)" 
+                                   Style="{StaticResource ChartTitleStyle}"/>
+                    </StackPanel>
+                    
+                    <lvc:CartesianChart Grid.Row="1"
+                                        x:Name="AltitudeSeries"
+                                        Series="{x:Bind ViewModel.AltitudeSeries, Mode=OneWay}"
+                                        LegendPosition="Bottom"
+                                        Margin="8"/>
+                </Grid>
+            </Border>
 
-        <lvc:CartesianChart
-        x:Name="SpeedSeries"
-        Grid.Column="2" Grid.Row="0"
-        Series="{x:Bind ViewModel.SpeedSeries, Mode=OneWay}"
-        LegendPosition="Bottom"/>
+            <!-- İvme Chart -->
+            <Border Grid.Column="1" Grid.Row="0" 
+                    Style="{StaticResource ChartCardStyle}"
+                    Translation="0,0,8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" 
+                                HorizontalAlignment="Center">
+                        <FontIcon Glyph="&#xE9CE;" 
+                                  Foreground="{StaticResource PrimaryBrush}"
+                                  Style="{StaticResource ChartIconStyle}"/>
+                        <TextBlock Text="İvme (m/s²)" 
+                                   Style="{StaticResource ChartTitleStyle}"/>
+                    </StackPanel>
+                    
+                    <lvc:CartesianChart Grid.Row="1"
+                                        x:Name="AccelSeries"
+                                        Series="{x:Bind ViewModel.AccelerationSeries, Mode=OneWay}"
+                                        LegendPosition="Bottom"
+                                        Margin="8"/>
+                </Grid>
+            </Border>
 
-        <lvc:CartesianChart
-        x:Name="TempSeries"
-        Grid.Column="3" Grid.Row="0"
-        Series="{x:Bind ViewModel.TemperatureSeries, Mode=OneWay}"
-        LegendPosition="Bottom"/>
+            <!-- Hız Chart -->
+            <Border Grid.Column="2" Grid.Row="0" 
+                    Style="{StaticResource ChartCardStyle}"
+                    Translation="0,0,8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" 
+                                HorizontalAlignment="Center">
+                        <FontIcon Glyph="&#xE9F3;" 
+                                  Foreground="{StaticResource SuccessBrush}"
+                                  Style="{StaticResource ChartIconStyle}"/>
+                        <TextBlock Text="Hız (m/s)" 
+                                   Style="{StaticResource ChartTitleStyle}"/>
+                    </StackPanel>
+                    
+                    <lvc:CartesianChart Grid.Row="1"
+                                        x:Name="SpeedSeries"
+                                        Series="{x:Bind ViewModel.SpeedSeries, Mode=OneWay}"
+                                        LegendPosition="Bottom"
+                                        Margin="8"/>
+                </Grid>
+            </Border>
 
-        <lvc:CartesianChart
-        x:Name="PressureySeries"
-        Grid.Column="1" Grid.Row="1"
-        Series="{x:Bind ViewModel.PressureSeries, Mode=OneWay}"
-        LegendPosition="Bottom"/>
+            <!-- Sıcaklık Chart -->
+            <Border Grid.Column="0" Grid.Row="1" 
+                    Style="{StaticResource ChartCardStyle}"
+                    Translation="0,0,8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" 
+                                HorizontalAlignment="Center">
+                        <FontIcon Glyph="&#xE9CA;" 
+                                  Foreground="#FF6B73"
+                                  Style="{StaticResource ChartIconStyle}"/>
+                        <TextBlock Text="Sıcaklık (°C)" 
+                                   Style="{StaticResource ChartTitleStyle}"/>
+                    </StackPanel>
+                    
+                    <lvc:CartesianChart Grid.Row="1"
+                                        x:Name="TempSeries"
+                                        Series="{x:Bind ViewModel.TemperatureSeries, Mode=OneWay}"
+                                        LegendPosition="Bottom"
+                                        Margin="8"/>
+                </Grid>
+            </Border>
 
-        <lvc:CartesianChart
-        x:Name="HumiditySeries"
-        Grid.Column="2" Grid.Row="1"
-        Series="{x:Bind ViewModel.HumiditySeries, Mode=OneWay}"
-        LegendPosition="Bottom"/>
+            <!-- Basınç Chart -->
+            <Border Grid.Column="1" Grid.Row="1" 
+                    Style="{StaticResource ChartCardStyle}"
+                    Translation="0,0,8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" 
+                                HorizontalAlignment="Center">
+                        <FontIcon Glyph="&#xE9C9;" 
+                                  Foreground="#9C88FF"
+                                  Style="{StaticResource ChartIconStyle}"/>
+                        <TextBlock Text="Basınç (hPa)" 
+                                   Style="{StaticResource ChartTitleStyle}"/>
+                    </StackPanel>
+                    
+                    <lvc:CartesianChart Grid.Row="1"
+                                        x:Name="PressureySeries"
+                                        Series="{x:Bind ViewModel.PressureSeries, Mode=OneWay}"
+                                        LegendPosition="Bottom"
+                                        Margin="8"/>
+                </Grid>
+            </Border>
 
+            <!-- Nem Chart -->
+            <Border Grid.Column="2" Grid.Row="1" 
+                    Style="{StaticResource ChartCardStyle}"
+                    Translation="0,0,8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" 
+                                HorizontalAlignment="Center">
+                        <FontIcon Glyph="&#xEB42;" 
+                                  Foreground="#00D4FF"
+                                  Style="{StaticResource ChartIconStyle}"/>
+                        <TextBlock Text="Nem (%)" 
+                                   Style="{StaticResource ChartTitleStyle}"/>
+                    </StackPanel>
+                    
+                    <lvc:CartesianChart Grid.Row="1"
+                                        x:Name="HumiditySeries"
+                                        Series="{x:Bind ViewModel.HumiditySeries, Mode=OneWay}"
+                                        LegendPosition="Bottom"
+                                        Margin="8"/>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </Page>
