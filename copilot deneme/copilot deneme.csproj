@@ -13,7 +13,11 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Content Remove="Assets\line-chart-128.png" />
+  </ItemGroup>
+  <ItemGroup>
     <None Remove="AccountPage.xaml" />
+    <None Remove="Assets\line-chart-128.png" />
     <None Remove="Assets\teamlogo.png" />
     <None Remove="ChartPage.xaml" />
     <None Remove="HomePage.xaml" />
@@ -52,6 +56,9 @@
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250513003" />
     <PackageReference Include="SkiaSharp" Version="2.88.9" />
     <PackageReference Include="System.IO.Ports" Version="9.0.5" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\line-chart-128.png" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="Assets\teamlogo.png">

@@ -9,6 +9,13 @@
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
             </ResourceDictionary.MergedDictionaries>
+            <!-- App.xaml'de özel renk paleti tanımlayın -->
+            <SolidColorBrush x:Key="PrimaryBrush" Color="#FF6B73"/>
+            <SolidColorBrush x:Key="SecondaryBrush" Color="#C7CEEA"/>
+            <SolidColorBrush x:Key="AccentBrush" Color="#FFD93D"/>
+            <SolidColorBrush x:Key="DarkBrush" Color="#1A1A2E"/>
+            <SolidColorBrush x:Key="CardBrush" Color="#16213E"/>
+            <SolidColorBrush x:Key="SuccessBrush" Color="#06FFA5"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

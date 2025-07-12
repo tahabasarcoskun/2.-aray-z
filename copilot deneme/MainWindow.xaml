@@ -8,32 +8,72 @@
     xmlns:lvc="using:LiveChartsCore.SkiaSharpView.WinUI"
     mc:Ignorable="d"
     Title="copilot deneme">
-    <Grid Background="Black">
+    <Grid>
+        <!-- Gradient arka plan -->
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#1A1A2E" Offset="0"/>
+                <GradientStop Color="#16213E" Offset="1"/>
+            </LinearGradientBrush>
+        </Grid.Background>
+        
         <NavigationView PaneDisplayMode="Left"
                         IsBackButtonVisible="Collapsed"
                         IsSettingsVisible="False"
                         SelectionChanged="NavigationView_SelectionChanged"
                         x:Name="NavigationView"
-                        OpenPaneLength="240">
+                        OpenPaneLength="250">
+            
+            <!-- Geliştirilmiş stil -->
             <NavigationView.Resources>
-                <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="#FFA500"/>
-                <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="#FFA500"/>
+                <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="#16213E"/>
+                <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="#16213E"/>
+                <SolidColorBrush x:Key="NavigationViewItemForeground" Color="White"/>
+                <SolidColorBrush x:Key="NavigationViewSelectionIndicatorForeground" Color="#FFD93D"/>
             </NavigationView.Resources>
             
-            
+            <!-- Geliştirilmiş header -->
             <NavigationView.PaneHeader>
-                <StackPanel Orientation="Horizontal" Margin="12">
-                    <Border Width="150" Height="150" CornerRadius="75">
-                        <Image Source="Assets/teamlogo.png" Width="150" Height="150"/>
+                <StackPanel Orientation="Vertical" Margin="16" HorizontalAlignment="Center">
+                    <Border Width="120" Height="120" CornerRadius="60"
+                            BorderBrush="#FFD93D" BorderThickness="3">
+                        <Border.Background>
+                            <ImageBrush ImageSource="Assets/teamlogo.png" Stretch="UniformToFill"/>
+                        </Border.Background>
                     </Border>
+                    <TextBlock Text="ROKET TELEMETRİ" 
+                               FontSize="12" 
+                               FontWeight="Bold" 
+                               Foreground="#FFD93D" 
+                               HorizontalAlignment="Center" 
+                               Margin="0,8,0,0"/>
                 </StackPanel>
             </NavigationView.PaneHeader>
+            
+            <!-- Güzelleştirilmiş menü öğeleri -->
             <NavigationView.MenuItems>
-                <NavigationViewItem Content="Ana Sayfa" Icon="Manage" Tag="home" x:Name="HomeNavViewItem"/>
-                <NavigationViewItem Content="Profile" Icon="Contact" Tag="profile"/>
-                <NavigationViewItem Content="Port Ayarları" Icon="Setting" Tag="settings"/>
-                <NavigationViewItem Content="Test" Icon="Refresh" Tag="test"/>
+                <NavigationViewItem Content="Ana Sayfa" Tag="home">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE80F;" Foreground="#FFD93D"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Grafikler" Tag="profile">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE9D2;" Foreground="#06FFA5"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Port Ayarları" Tag="settings">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE713;" Foreground="#C7CEEA"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Test" Tag="test">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE916;" Foreground="#FF6B73"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
             </NavigationView.MenuItems>
+            
             <Frame x:Name="ContentFrame"/>
         </NavigationView>
     </Grid>
