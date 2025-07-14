@@ -24,6 +24,9 @@ namespace copilot_deneme
         
         // Yeni event handler - ham veri için
         public static event Action<string> OnDataReceived;
+        
+        // sitPage için telemetri veri eventi
+        public static event Action<TelemetryUpdateData> OnTelemetryDataUpdated;
 
         public static void Initialize(string portName, int baudRate)
         {
@@ -168,11 +171,61 @@ namespace copilot_deneme
                 // Chart'lara doðru veri sýrasýyla ekle
                 UpdateCharts(irtifa, roketGpsIrtifa, payloadGpsIrtifa, ivmeZ, 
                            jiroskopX, jiroskopY, jiroskopZ, ivmeX, ivmeY, aci, durum, paketSayaci);
+                
+                // sitPage için telemetri verilerini gönder
+                NotifySitPage(irtifa, roketGpsIrtifa, roketGpsEnlem, roketGpsBoylam,
+                             payloadGpsIrtifa, payloadGpsEnlem, payloadGpsBoylam,
+                             jiroskopX, jiroskopY, jiroskopZ, ivmeX, ivmeY, ivmeZ, aci);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error parsing Arduino data: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"Raw data was: '{data}'");
+            }
+        }
+
+        private static void NotifySitPage(float roketIrtifa, float roketGpsIrtifa, float roketGpsEnlem, float roketGpsBoylam,
+                                         float payloadIrtifa, float payloadGpsEnlem, float payloadGpsBoylam,
+                                         float jiroskopX, float jiroskopY, float jiroskopZ,
+                                         float ivmeX, float ivmeY, float ivmeZ, float aci)
+        {
+            try
+            {
+                // Telemetri verilerini hazýrla
+                var telemetryData = new TelemetryUpdateData
+                {
+                    RocketAltitude = roketIrtifa,
+                    RocketGpsAltitude = roketGpsIrtifa,
+                    RocketLatitude = roketGpsEnlem,
+                    RocketLongitude = roketGpsBoylam,
+                    PayloadAltitude = payloadIrtifa,
+                    PayloadLatitude = payloadGpsEnlem,
+                    PayloadLongitude = payloadGpsBoylam,
+                    GyroX = jiroskopX,
+                    GyroY = jiroskopY,
+                    GyroZ = jiroskopZ,
+                    AccelX = ivmeX,
+                    AccelY = ivmeY,
+                    AccelZ = ivmeZ,
+                    Angle = aci,
+                    // Chart'lardan gelen sabit deðerler
+                    RocketSpeed = 0,           // Hesaplanmýyor, 0
+                    PayloadSpeed = 0,          // Hesaplanmýyor, 0
+                    RocketTemperature = 25,    // Sabit deðer
+                    PayloadTemperature = 25,   // Sabit deðer
+                    RocketPressure = 1013,     // Deniz seviyesi basýncý
+                    PayloadPressure = 1013,    // Deniz seviyesi basýncý
+                    PayloadHumidity = 50       // Sabit nem deðeri
+                };
+
+                // sitPage'e telemetri verilerini bildir
+                OnTelemetryDataUpdated?.Invoke(telemetryData);
+                
+                System.Diagnostics.Debug.WriteLine($"sitPage'e telemetri verisi gönderildi - Roket: {roketIrtifa:F2}m, Payload: {payloadIrtifa:F2}m");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error notifying sitPage: {ex.Message}");
             }
         }
 
@@ -261,10 +314,18 @@ namespace copilot_deneme
                         
                         ViewModel.addPayloadHumidityValue(50);                // Nem sensörü yok, sabit deðer
                         
-                        ViewModel.UpdateStatus($"Sensör verisi: {DateTime.Now:HH:mm:ss} - Paket: {paketSayaci}");
+                        // Yeni sensör verileri - jiroskop ve ivme
+                        ViewModel.addGyroXValue(jiroskopX);                   // Jiroskop X
+                        ViewModel.addGyroYValue(jiroskopY);                   // Jiroskop Y
+                        ViewModel.addGyroZValue(jiroskopZ);                   // Jiroskop Z
+                        ViewModel.addAccelXValue(ivmeX);                      // Ývme X
+                        ViewModel.addAccelYValue(ivmeY);                      // Ývme Y
+                        ViewModel.addAngleValue(aci);                         // Açý
+                        
+                        ViewModel.UpdateStatus($"Serial verisi: {DateTime.Now:HH:mm:ss} - Paket: {paketSayaci}");
                         
                         // Tüm sensör verilerini debug'a yazdýr
-                        System.Diagnostics.Debug.WriteLine($"SENSÖR VERÝLERÝ - Paket: {paketSayaci}");
+                        System.Diagnostics.Debug.WriteLine($"SERIAL VERÝLERÝ - Paket: {paketSayaci}");
                         System.Diagnostics.Debug.WriteLine($"  Roket Ýrtifa: {roketIrtifa:F2} m");
                         System.Diagnostics.Debug.WriteLine($"  Roket GPS Ýrtifa: {roketGpsIrtifa:F2} m");
                         System.Diagnostics.Debug.WriteLine($"  Payload GPS Ýrtifa: {payloadIrtifa:F2} m");
@@ -281,6 +342,111 @@ namespace copilot_deneme
                 catch (Exception ex)
                 {
                     System.Diagnostics.Debug.WriteLine($"Error updating charts: {ex.Message}");
+                }
+            });
+        }
+
+        // Yeni metod: Harici sayfalardan chart güncellemesi için
+        public static void UpdateChartsFromExternalData(float rocketAltitude, float payloadAltitude, 
+            float rocketAccelZ, float payloadAccelZ, float rocketSpeed, float payloadSpeed,
+            float rocketTemp, float payloadTemp, float rocketPressure, float payloadPressure, 
+            float payloadHumidity, string source = "External")
+        {
+            Dispatcher?.TryEnqueue(() =>
+            {
+                try
+                {
+                    if (ViewModel != null)
+                    {
+                        ViewModel.AddRocketAltitudeValue(rocketAltitude);
+                        ViewModel.addPayloadAltitudeValue(payloadAltitude);
+                        
+                        ViewModel.addRocketAccelZValue(rocketAccelZ);
+                        ViewModel.addPayloadAccelZValue(payloadAccelZ);
+                        
+                        ViewModel.addRocketSpeedValue(rocketSpeed);
+                        ViewModel.addPayloadSpeedValue(payloadSpeed);
+                        
+                        ViewModel.addRocketTempValue(rocketTemp);
+                        ViewModel.addPayloadTempValue(payloadTemp);
+                        
+                        ViewModel.addRocketPressureValue(rocketPressure);
+                        ViewModel.addPayloadPressureValue(payloadPressure);
+                        
+                        ViewModel.addPayloadHumidityValue(payloadHumidity);
+                        
+                        ViewModel.UpdateStatus($"{source} verisi: {DateTime.Now:HH:mm:ss}");
+                        
+                        System.Diagnostics.Debug.WriteLine($"{source} verisi chart'lara eklendi - Roket: {rocketAltitude:F2}m, Payload: {payloadAltitude:F2}m");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"{source}: ViewModel bulunamadý!");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"{source} chart güncelleme hatasý: {ex.Message}");
+                }
+            });
+        }
+
+        // Yeni metod: Harici sayfalardan chart güncellemesi için - geniþletilmiþ versiyon
+        public static void UpdateChartsFromExternalData(float rocketAltitude, float payloadAltitude, 
+            float rocketAccelZ, float payloadAccelZ, float rocketSpeed, float payloadSpeed,
+            float rocketTemp, float payloadTemp, float rocketPressure, float payloadPressure, 
+            float payloadHumidity, string source = "External",
+            float gyroX = 0, float gyroY = 0, float gyroZ = 0,
+            float accelX = 0, float accelY = 0, float angle = 0)
+        {
+            Dispatcher?.TryEnqueue(() =>
+            {
+                try
+                {
+                    if (ViewModel != null)
+                    {
+                        // Temel sensör verileri
+                        ViewModel.AddRocketAltitudeValue(rocketAltitude);
+                        ViewModel.addPayloadAltitudeValue(payloadAltitude);
+                        
+                        ViewModel.addRocketAccelZValue(rocketAccelZ);
+                        ViewModel.addPayloadAccelZValue(payloadAccelZ);
+                        
+                        ViewModel.addRocketSpeedValue(rocketSpeed);
+                        ViewModel.addPayloadSpeedValue(payloadSpeed);
+                        
+                        ViewModel.addRocketTempValue(rocketTemp);
+                        ViewModel.addPayloadTempValue(payloadTemp);
+                        
+                        ViewModel.addRocketPressureValue(rocketPressure);
+                        ViewModel.addPayloadPressureValue(payloadPressure);
+                        
+                        ViewModel.addPayloadHumidityValue(payloadHumidity);
+                        
+                        // Yeni sensör verileri - jiroskop ve açý
+                        ViewModel.addGyroXValue(gyroX);
+                        ViewModel.addGyroYValue(gyroY);
+                        ViewModel.addGyroZValue(gyroZ);
+                        ViewModel.addAccelXValue(accelX);
+                        ViewModel.addAccelYValue(accelY);
+                        ViewModel.addAngleValue(angle);
+                        
+                        ViewModel.UpdateStatus($"{source} verisi: {DateTime.Now:HH:mm:ss}");
+                        
+                        System.Diagnostics.Debug.WriteLine($"{source} TÜM VERÝLER chart'lara eklendi:");
+                        System.Diagnostics.Debug.WriteLine($"  Roket: {rocketAltitude:F2}m, Payload: {payloadAltitude:F2}m");
+                        System.Diagnostics.Debug.WriteLine($"  Jiroskop X:{gyroX:F2}, Y:{gyroY:F2}, Z:{gyroZ:F2}");
+                        System.Diagnostics.Debug.WriteLine($"  Ývme X:{accelX:F2}, Y:{accelY:F2}, Z:{rocketAccelZ:F2}");
+                        System.Diagnostics.Debug.WriteLine($"  Açý: {angle:F2}°");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"{source}: ViewModel bulunamadý!");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"{source} chart güncelleme hatasý: {ex.Message}");
                 }
             });
         }
@@ -333,5 +499,31 @@ namespace copilot_deneme
                 System.Diagnostics.Debug.WriteLine($"Error triggering test data: {ex.Message}");
             }
         }
+    }
+
+    // sitPage için telemetri veri sýnýfý
+    public class TelemetryUpdateData
+    {
+        public float RocketAltitude { get; set; }
+        public float RocketGpsAltitude { get; set; }
+        public float RocketLatitude { get; set; }
+        public float RocketLongitude { get; set; }
+        public float PayloadAltitude { get; set; }
+        public float PayloadLatitude { get; set; }
+        public float PayloadLongitude { get; set; }
+        public float GyroX { get; set; }
+        public float GyroY { get; set; }
+        public float GyroZ { get; set; }
+        public float AccelX { get; set; }
+        public float AccelY { get; set; }
+        public float AccelZ { get; set; }
+        public float Angle { get; set; }
+        public float RocketSpeed { get; set; }
+        public float PayloadSpeed { get; set; }
+        public float RocketTemperature { get; set; }
+        public float PayloadTemperature { get; set; }
+        public float RocketPressure { get; set; }
+        public float PayloadPressure { get; set; }
+        public float PayloadHumidity { get; set; }
     }
 }

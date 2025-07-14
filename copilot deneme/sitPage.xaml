@@ -6,9 +6,430 @@
     xmlns:local="using:copilot_deneme"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    UseLayoutRounding="True">
+
+    <Page.Resources>
+        <Style x:Key="DataCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource CardBrush}"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{StaticResource SecondaryBrush}"/>
+            <Setter Property="Shadow">
+                <Setter.Value>
+                    <ThemeShadow/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="MapCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource CardBrush}"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Margin" Value="8"/>
+            <Setter Property="Shadow">
+                <Setter.Value>
+                    <ThemeShadow/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="InfoCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource CardBrush}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{StaticResource SecondaryBrush}"/>
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="Shadow">
+                <Setter.Value>
+                    <ThemeShadow/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <Style x:Key="DataLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Opacity" Value="0.8"/>
+        </Style>
+
+        <Style x:Key="DataValueStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{StaticResource SuccessBrush}"/>
+        </Style>
+    </Page.Resources>
 
     <Grid>
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#2A1A4E" Offset="0"/>
+                <GradientStop Color="#1E2147" Offset="1"/>
+            </LinearGradientBrush>
+        </Grid.Background>
 
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="1*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" 
+                Style="{StaticResource DataCardStyle}"
+                Margin="16,16,16,8"
+                Translation="0,0,8">
+            <StackPanel Orientation="Horizontal" 
+                        HorizontalAlignment="Center" 
+                        Margin="16,12">
+                <FontIcon Glyph="&#xE81D;" 
+                          Foreground="{StaticResource AccentBrush}" 
+                          FontSize="24" 
+                          Margin="0,0,12,0"/>
+                <TextBlock Text="SİT Telemetri Verileri ve GPS Haritası - Gerçek Zamanlı"
+                           FontSize="20"
+                           FontWeight="Bold"
+                           Foreground="White"/>
+                <Ellipse Width="12" Height="12" 
+                         Fill="{StaticResource SuccessBrush}" 
+                         Margin="12,0,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- GPS Harita - Ana Alan -->
+        <Border Grid.Row="1" 
+                Style="{StaticResource MapCardStyle}"
+                Margin="16,8,16,8">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <!-- Harita Başlığı -->
+                <StackPanel Grid.Row="0" 
+                           Orientation="Horizontal" 
+                           HorizontalAlignment="Center" 
+                           Margin="0,12,0,8">
+                    <FontIcon Glyph="&#xE909;" 
+                              Foreground="{StaticResource AccentBrush}" 
+                              FontSize="20" 
+                              Margin="0,0,8,0"/>
+                    <TextBlock Text="Gerçek Zamanlı GPS Takip Haritası"
+                               Style="{StaticResource SectionTitleStyle}"
+                               FontSize="18"
+                               Margin="0"/>
+                    <FontIcon Glyph="&#xE946;" 
+                              Foreground="{StaticResource SuccessBrush}" 
+                              FontSize="16" 
+                              Margin="8,0,0,0"/>
+                </StackPanel>
+                
+                <!-- Harita WebView -->
+                <WebView2 Grid.Row="1" 
+                         x:Name="MapWebView" 
+                         Margin="8,0,8,8"/>
+            </Grid>
+        </Border>
+
+        <!-- Telemetri Veri Panelleri -->
+        <ScrollViewer Grid.Row="2" 
+                      VerticalScrollBarVisibility="Auto" 
+                      Margin="16,8,16,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Roket Verileri -->
+                <Border Grid.Column="0" Style="{StaticResource InfoCardStyle}">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="🚀 ROKET" Style="{StaticResource SectionTitleStyle}" FontSize="14"/>
+                        
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="İrtifa:" Style="{StaticResource DataLabelStyle}"/>
+                            <TextBlock x:Name="RocketAltitudeText" Grid.Row="1" Text="0.00 m" Style="{StaticResource DataValueStyle}"/>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="GPS İrtifa:" Style="{StaticResource DataLabelStyle}"/>
+                            <TextBlock x:Name="RocketGpsAltitudeText" Grid.Row="1" Text="0.00 m" Style="{StaticResource DataValueStyle}"/>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Enlem:" Style="{StaticResource DataLabelStyle}"/>
+                            <TextBlock x:Name="RocketLatitudeText" Grid.Row="1" Text="0.000000" Style="{StaticResource DataValueStyle}" FontSize="11"/>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Boylam:" Style="{StaticResource DataLabelStyle}"/>
+                            <TextBlock x:Name="RocketLongitudeText" Grid.Row="1" Text="0.000000" Style="{StaticResource DataValueStyle}" FontSize="11"/>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Hız:" Style="{StaticResource DataLabelStyle}"/>
+                            <TextBlock x:Name="RocketSpeedText" Grid.Row="1" Text="0.00 m/s" Style="{StaticResource DataValueStyle}"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Payload Verileri -->
+                <Border Grid.Column="1" Style="{StaticResource InfoCardStyle}">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="📦 PAYLOAD" Style="{StaticResource SectionTitleStyle}" FontSize="14"/>
+                        
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="İrtifa:" Style="{StaticResource DataLabelStyle}"/>
+                            <TextBlock x:Name="PayloadAltitudeText" Grid.Row="1" Text="0.00 m" Style="{StaticResource DataValueStyle}"/>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Enlem:" Style="{StaticResource DataLabelStyle}"/>
+                            <TextBlock x:Name="PayloadLatitudeText" Grid.Row="1" Text="0.000000" Style="{StaticResource DataValueStyle}" FontSize="11"/>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Boylam:" Style="{StaticResource DataLabelStyle}"/>
+                            <TextBlock x:Name="PayloadLongitudeText" Grid.Row="1" Text="0.000000" Style="{StaticResource DataValueStyle}" FontSize="11"/>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Hız:" Style="{StaticResource DataLabelStyle}"/>
+                            <TextBlock x:Name="PayloadSpeedText" Grid.Row="1" Text="0.00 m/s" Style="{StaticResource DataValueStyle}"/>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Nem:" Style="{StaticResource DataLabelStyle}"/>
+                            <TextBlock x:Name="PayloadHumidityText" Grid.Row="1" Text="0.0 %" Style="{StaticResource DataValueStyle}"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Jiroskop Verileri -->
+                <Border Grid.Column="2" Style="{StaticResource InfoCardStyle}">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="🎯 JİROSKOP" Style="{StaticResource SectionTitleStyle}" FontSize="14"/>
+                        
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="X:" Style="{StaticResource DataLabelStyle}"/>
+                            <TextBlock x:Name="GyroXText" Grid.Row="1" Text="0.00 °/s" Style="{StaticResource DataValueStyle}"/>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Y:" Style="{StaticResource DataLabelStyle}"/>
+                            <TextBlock x:Name="GyroYText" Grid.Row="1" Text="0.00 °/s" Style="{StaticResource DataValueStyle}"/>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Z:" Style="{StaticResource DataLabelStyle}"/>
+                            <TextBlock x:Name="GyroZText" Grid.Row="1" Text="0.00 °/s" Style="{StaticResource DataValueStyle}"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- İvme Verileri -->
+                <Border Grid.Column="3" Style="{StaticResource InfoCardStyle}">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="⚡ İVME" Style="{StaticResource SectionTitleStyle}" FontSize="14"/>
+                        
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="X:" Style="{StaticResource DataLabelStyle}"/>
+                            <TextBlock x:Name="AccelXText" Grid.Row="1" Text="0.00 m/s²" Style="{StaticResource DataValueStyle}"/>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Y:" Style="{StaticResource DataLabelStyle}"/>
+                            <TextBlock x:Name="AccelYText" Grid.Row="1" Text="0.00 m/s²" Style="{StaticResource DataValueStyle}"/>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Z:" Style="{StaticResource DataLabelStyle}"/>
+                            <TextBlock x:Name="AccelZText" Grid.Row="1" Text="0.00 m/s²" Style="{StaticResource DataValueStyle}"/>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Açı:" Style="{StaticResource DataLabelStyle}"/>
+                            <TextBlock x:Name="AngleText" Grid.Row="1" Text="0.00°" Style="{StaticResource DataValueStyle}"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Sıcaklık Basınç -->
+                <Border Grid.Column="4" Style="{StaticResource InfoCardStyle}">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="🌡️ ORTAM" Style="{StaticResource SectionTitleStyle}" FontSize="14"/>
+                        
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="R.Sıcaklık:" Style="{StaticResource DataLabelStyle}"/>
+                            <TextBlock x:Name="RocketTemperatureText" Grid.Row="1" Text="0.0 °C" Style="{StaticResource DataValueStyle}"/>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="P.Sıcaklık:" Style="{StaticResource DataLabelStyle}"/>
+                            <TextBlock x:Name="PayloadTemperatureText" Grid.Row="1" Text="0.0 °C" Style="{StaticResource DataValueStyle}"/>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="R.Basınç:" Style="{StaticResource DataLabelStyle}"/>
+                            <TextBlock x:Name="RocketPressureText" Grid.Row="1" Text="0.0 hPa" Style="{StaticResource DataValueStyle}"/>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="P.Basınç:" Style="{StaticResource DataLabelStyle}"/>
+                            <TextBlock x:Name="PayloadPressureText" Grid.Row="1" Text="0.0 hPa" Style="{StaticResource DataValueStyle}"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Sistem Bilgi -->
+                <Border Grid.Column="5" Style="{StaticResource InfoCardStyle}">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="📊 SİSTEM" Style="{StaticResource SectionTitleStyle}" FontSize="14"/>
+                        
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Son Güncelleme:" Style="{StaticResource DataLabelStyle}" FontSize="11"/>
+                            <TextBlock x:Name="LastUpdateText" Grid.Row="1" Text="Bekleniyor..." Style="{StaticResource DataValueStyle}" FontSize="10"/>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Veri Sayısı:" Style="{StaticResource DataLabelStyle}"/>
+                            <TextBlock x:Name="DataCountText" Grid.Row="1" Text="0" Style="{StaticResource DataValueStyle}"/>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Maks. İrtifa:" Style="{StaticResource DataLabelStyle}"/>
+                            <TextBlock x:Name="MaxAltitudeText" Grid.Row="1" Text="0.00 m" Style="{StaticResource DataValueStyle}"/>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Maks. İvme:" Style="{StaticResource DataLabelStyle}"/>
+                            <TextBlock x:Name="MaxAccelText" Grid.Row="1" Text="0.00 m/s²" Style="{StaticResource DataValueStyle}"/>
+                        </Grid>
+
+                        <!-- GPS Durum İkonları -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,4,0,0">
+                            <TextBlock Text="🔴" FontSize="12" Margin="0,0,4,0" ToolTipService.ToolTip="Roket Konumu"/>
+                            <TextBlock Text="🟢" FontSize="12" Margin="0,0,4,0" ToolTipService.ToolTip="Payload Konumu"/>
+                            <TextBlock Text="📍" FontSize="12" ToolTipService.ToolTip="Uçuş Rotası"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </ScrollViewer>
     </Grid>
 </Page>

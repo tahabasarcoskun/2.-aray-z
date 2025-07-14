@@ -21,21 +21,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
-        <Style x:Key="DataLabelStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="Foreground" Value="{StaticResource SecondaryBrush}"/>
-            <Setter Property="Margin" Value="0,0,12,8"/>
-        </Style>
-
-        <Style x:Key="DataValueStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="{StaticResource SuccessBrush}"/>
-            <Setter Property="Margin" Value="0,0,0,8"/>
-            <Setter Property="FontFamily" Value="Consolas"/>
-        </Style>
     </Page.Resources>
 
     <Grid>
@@ -51,13 +36,8 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="2*"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-
         <!-- Header -->
-        <Border Grid.Row="0" Grid.ColumnSpan="2" 
+        <Border Grid.Row="0" 
                 Style="{StaticResource DataCardStyle}"
                 Margin="16,16,16,8"
                 Translation="0,0,8">
@@ -68,7 +48,7 @@
                           Foreground="{StaticResource SuccessBrush}" 
                           FontSize="20" 
                           Margin="0,0,12,0"/>
-                <TextBlock Text="Telemetri Sistemi"
+                <TextBlock Text="Ana Sayfa - Ham Veri Görüntüleme"
                            FontSize="18"
                            FontWeight="SemiBold"
                            Foreground="White"/>
@@ -78,15 +58,16 @@
             </StackPanel>
         </Border>
 
-        <!-- Sol taraf - Serial Veri -->
-        <Border Grid.Row="1" Grid.Column="0"
+        <!-- Ana Ýçerik - Ham Veri Görüntüleme -->
+        <Border Grid.Row="1"
                 Style="{StaticResource DataCardStyle}"
-                Margin="16,8,8,16"
+                Margin="16,8,16,16"
                 Translation="0,0,8">
             <Grid Margin="20">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
@@ -95,7 +76,7 @@
                               Foreground="{StaticResource AccentBrush}" 
                               FontSize="18" 
                               Margin="0,0,8,0"/>
-                    <TextBlock Text="Seri Port Verileri"
+                    <TextBlock Text="Ham Seri Port Verileri"
                                FontSize="16"
                                FontWeight="SemiBold"
                                Foreground="White"/>
@@ -117,7 +98,7 @@
                                  FontFamily="Consolas"
                                  FontSize="12"
                                  BorderThickness="0"
-                                 MinHeight="200"/>
+                                 MinHeight="300"/>
                     </ScrollViewer>
                 </Border>
 
@@ -129,111 +110,27 @@
                         Foreground="White"
                         CornerRadius="6"
                         Click="ClearData_Click"/>
-            </Grid>
-        </Border>
 
-        <!-- Sað taraf - Telemetri -->
-        <Border Grid.Row="1" Grid.Column="1"
-                Style="{StaticResource DataCardStyle}"
-                Margin="8,8,16,16"
-                Translation="0,0,8">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="20">
-                <StackPanel Spacing="12">
-                    <!-- Header -->
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                        <FontIcon Glyph="&#xE9D9;" 
-                                  Foreground="{StaticResource AccentBrush}" 
-                                  FontSize="18" 
-                                  Margin="0,0,8,0"/>
-                        <TextBlock Text="Telemetri Verileri"
-                                   FontSize="16"
-                                   FontWeight="SemiBold"
-                                   Foreground="White"/>
-                    </StackPanel>
-
-                    <!-- Telemetri Grid -->
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Ýrtifa:" Style="{StaticResource DataLabelStyle}"/>
-                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="irtifaData" Text="0.00 m" Style="{StaticResource DataValueStyle}"/>
-
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Roket GPS Ýrtifa:" Style="{StaticResource DataLabelStyle}"/>
-                        <TextBlock Grid.Row="1" Grid.Column="1" x:Name="roketGpsIrtifaData" Text="0.00 m" Style="{StaticResource DataValueStyle}"/>
-
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Roket GPS Enlem:" Style="{StaticResource DataLabelStyle}"/>
-                        <TextBlock Grid.Row="2" Grid.Column="1" x:Name="roketEnlemData" Text="0.000000" Style="{StaticResource DataValueStyle}"/>
-
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Roket GPS Boylam:" Style="{StaticResource DataLabelStyle}"/>
-                        <TextBlock Grid.Row="3" Grid.Column="1" x:Name="roketBoylamData" Text="0.000000" Style="{StaticResource DataValueStyle}"/>
-
-                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Görev Yükü GPS Ýrtifa:" Style="{StaticResource DataLabelStyle}"/>
-                        <TextBlock Grid.Row="4" Grid.Column="1" x:Name="gorevYukuGpsIrtifaData" Text="0.00 m" Style="{StaticResource DataValueStyle}"/>
-
-                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Görev Yükü GPS Enlem:" Style="{StaticResource DataLabelStyle}"/>
-                        <TextBlock Grid.Row="5" Grid.Column="1" x:Name="gorevYukuGpsEnlemData" Text="0.000000" Style="{StaticResource DataValueStyle}"/>
-
-                        <TextBlock Grid.Row="6" Grid.Column="0" Text="Görev Yükü GPS Boylam:" Style="{StaticResource DataLabelStyle}"/>
-                        <TextBlock Grid.Row="6" Grid.Column="1" x:Name="gorevYukuGpsBoylamData" Text="0.000000" Style="{StaticResource DataValueStyle}"/>
-
-                        <TextBlock Grid.Row="7" Grid.Column="0" Text="Jiroskop X:" Style="{StaticResource DataLabelStyle}"/>
-                        <TextBlock Grid.Row="7" Grid.Column="1" x:Name="jiroskopXData" Text="0.00" Style="{StaticResource DataValueStyle}"/>
-
-                        <TextBlock Grid.Row="8" Grid.Column="0" Text="Jiroskop Y:" Style="{StaticResource DataLabelStyle}"/>
-                        <TextBlock Grid.Row="8" Grid.Column="1" x:Name="jiroskopYData" Text="0.00" Style="{StaticResource DataValueStyle}"/>
-
-                        <TextBlock Grid.Row="9" Grid.Column="0" Text="Jiroskop Z:" Style="{StaticResource DataLabelStyle}"/>
-                        <TextBlock Grid.Row="9" Grid.Column="1" x:Name="jiroskopZData" Text="0.00" Style="{StaticResource DataValueStyle}"/>
-
-                        <TextBlock Grid.Row="10" Grid.Column="0" Text="Ývme X:" Style="{StaticResource DataLabelStyle}"/>
-                        <TextBlock Grid.Row="10" Grid.Column="1" x:Name="ivmeXData" Text="0.00" Style="{StaticResource DataValueStyle}"/>
-
-                        <TextBlock Grid.Row="11" Grid.Column="0" Text="Ývme Y:" Style="{StaticResource DataLabelStyle}"/>
-                        <TextBlock Grid.Row="11" Grid.Column="1" x:Name="ivmeYData" Text="0.00" Style="{StaticResource DataValueStyle}"/>
-
-                        <TextBlock Grid.Row="12" Grid.Column="0" Text="Ývme Z:" Style="{StaticResource DataLabelStyle}"/>
-                        <TextBlock Grid.Row="12" Grid.Column="1" x:Name="ivmeZData" Text="0.00" Style="{StaticResource DataValueStyle}"/>
-
-                        <TextBlock Grid.Row="13" Grid.Column="0" Text="Açý:" Style="{StaticResource DataLabelStyle}"/>
-                        <TextBlock Grid.Row="13" Grid.Column="1" x:Name="aciData" Text="0.00°" Style="{StaticResource DataValueStyle}"/>
-
-                        <TextBlock Grid.Row="14" Grid.Column="0" Text="Durum:" Style="{StaticResource DataLabelStyle}"/>
-                        <TextBlock Grid.Row="14" Grid.Column="1" x:Name="durumData" Text="0" Style="{StaticResource DataValueStyle}"/>
-                    </Grid>
-
-                    <!-- Status -->
-                    <Border Background="{StaticResource DarkBrush}" 
-                            CornerRadius="6" 
-                            Padding="12,8" 
-                            Margin="0,12,0,0">
+                <!-- Status -->
+                <Border Grid.Row="3"
+                        Background="{StaticResource DarkBrush}" 
+                        CornerRadius="6" 
+                        Padding="12,8" 
+                        Margin="0,12,0,0">
+                    <StackPanel>
                         <TextBlock x:Name="StatusTextBlock"
-                                   Text="Port kontrol ediliyor..."
+                                   Text="Ham veri bekleniyor..."
                                    FontSize="12"
                                    Foreground="{StaticResource AccentBrush}"
                                    HorizontalAlignment="Center"/>
-                    </Border>
-                </StackPanel>
-            </ScrollViewer>
+                        <TextBlock Text="?? Telemetri iþleme için 'Test' sayfasýndaki 'SUT' sekmesini kullanýn"
+                                   FontSize="11"
+                                   Foreground="{StaticResource SecondaryBrush}"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
         </Border>
     </Grid>
 </Page>

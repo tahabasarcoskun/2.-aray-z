@@ -6,9 +6,328 @@
     xmlns:local="using:copilot_deneme"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d">
+    xmlns:lvc="using:LiveChartsCore.SkiaSharpView.WinUI"
+    mc:Ignorable="d"
+    UseLayoutRounding="True">
+
+    <Page.Resources>
+        <Style x:Key="DataCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource CardBrush}"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{StaticResource SecondaryBrush}"/>
+            <Setter Property="Shadow">
+                <Setter.Value>
+                    <ThemeShadow/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ChartCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource CardBrush}"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="Shadow">
+                <Setter.Value>
+                    <ThemeShadow/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ChartTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,8,0,4"/>
+        </Style>
+    </Page.Resources>
 
     <Grid>
-        <Button Content="Başlat" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#2A1A4E" Offset="0"/>
+                <GradientStop Color="#1E2147" Offset="1"/>
+            </LinearGradientBrush>
+        </Grid.Background>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" 
+                Style="{StaticResource DataCardStyle}"
+                Margin="16,16,16,8"
+                Translation="0,0,8">
+            <StackPanel Orientation="Horizontal" 
+                        HorizontalAlignment="Center" 
+                        Margin="16,12">
+                <FontIcon Glyph="&#xE902;" 
+                          Foreground="{StaticResource AccentBrush}" 
+                          FontSize="20" 
+                          Margin="0,0,12,0"/>
+                <TextBlock Text="SUT Telemetri Chart'ları ve GPS Haritası - Gerçek Zamanlı"
+                           FontSize="18"
+                           FontWeight="SemiBold"
+                           Foreground="White"/>
+                <Ellipse Width="10" Height="10" 
+                         Fill="{StaticResource AccentBrush}" 
+                         Margin="12,0,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Charts Section - Tam Ekran -->
+        <ScrollViewer Grid.Row="1" 
+                      VerticalScrollBarVisibility="Auto" 
+                      Margin="16,0,16,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="240"/>
+                    <RowDefinition Height="240"/>
+                    <RowDefinition Height="240"/>
+                    <RowDefinition Height="240"/>
+                </Grid.RowDefinitions>
+
+                <!-- İrtifa Chart -->
+                <Border Grid.Column="0" Grid.Row="0" Style="{StaticResource ChartCardStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="İrtifa (m)" Style="{StaticResource ChartTitleStyle}"/>
+                        <lvc:CartesianChart Grid.Row="1" x:Name="IrtifaChart" Margin="4"/>
+                    </Grid>
+                </Border>
+
+                <!-- Roket GPS İrtifa Chart -->
+                <Border Grid.Column="1" Grid.Row="0" Style="{StaticResource ChartCardStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="Roket GPS İrtifa (m)" Style="{StaticResource ChartTitleStyle}"/>
+                        <lvc:CartesianChart Grid.Row="1" x:Name="RoketGpsIrtifaChart" Margin="4"/>
+                    </Grid>
+                </Border>
+
+                <!-- Payload GPS İrtifa Chart -->
+                <Border Grid.Column="2" Grid.Row="0" Style="{StaticResource ChartCardStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="Payload GPS İrtifa (m)" Style="{StaticResource ChartTitleStyle}"/>
+                        <lvc:CartesianChart Grid.Row="1" x:Name="PayloadGpsIrtifaChart" Margin="4"/>
+                    </Grid>
+                </Border>
+
+                <!-- GPS Harita - Canlı Takip -->
+                <Border Grid.Column="3" Grid.Row="0" Style="{StaticResource ChartCardStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8,0,4">
+                            <FontIcon Glyph="&#xE81D;" 
+                                      Foreground="{StaticResource SuccessBrush}" 
+                                      FontSize="14" 
+                                      Margin="0,0,6,0"/>
+                            <TextBlock Text="GPS Harita Takip" Style="{StaticResource ChartTitleStyle}" Margin="0"/>
+                        </StackPanel>
+                        <WebView2 Grid.Row="1" x:Name="MapWebView" Margin="4"/>
+                    </Grid>
+                </Border>
+
+                <!-- Roket GPS Boylam Chart -->
+                <Border Grid.Column="0" Grid.Row="1" Style="{StaticResource ChartCardStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="Roket GPS Boylam" Style="{StaticResource ChartTitleStyle}"/>
+                        <lvc:CartesianChart Grid.Row="1" x:Name="RoketGpsBoylamChart" Margin="4"/>
+                    </Grid>
+                </Border>
+
+                <!-- Payload GPS Enlem Chart -->
+                <Border Grid.Column="1" Grid.Row="1" Style="{StaticResource ChartCardStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="Payload GPS Enlem" Style="{StaticResource ChartTitleStyle}"/>
+                        <lvc:CartesianChart Grid.Row="1" x:Name="PayloadGpsEnlemChart" Margin="4"/>
+                    </Grid>
+                </Border>
+
+                <!-- Payload GPS Boylam Chart -->
+                <Border Grid.Column="2" Grid.Row="1" Style="{StaticResource ChartCardStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="Payload GPS Boylam" Style="{StaticResource ChartTitleStyle}"/>
+                        <lvc:CartesianChart Grid.Row="1" x:Name="PayloadGpsBoylamChart" Margin="4"/>
+                    </Grid>
+                </Border>
+
+                <!-- Jiroskop X Chart -->
+                <Border Grid.Column="3" Grid.Row="1" Style="{StaticResource ChartCardStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="Jiroskop X (°/s)" Style="{StaticResource ChartTitleStyle}"/>
+                        <lvc:CartesianChart Grid.Row="1" x:Name="JiroskopXChart" Margin="4"/>
+                    </Grid>
+                </Border>
+
+                <!-- Jiroskop Y Chart -->
+                <Border Grid.Column="0" Grid.Row="2" Style="{StaticResource ChartCardStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="Jiroskop Y (°/s)" Style="{StaticResource ChartTitleStyle}"/>
+                        <lvc:CartesianChart Grid.Row="1" x:Name="JiroskopYChart" Margin="4"/>
+                    </Grid>
+                </Border>
+
+                <!-- Jiroskop Z Chart -->
+                <Border Grid.Column="1" Grid.Row="2" Style="{StaticResource ChartCardStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="Jiroskop Z (°/s)" Style="{StaticResource ChartTitleStyle}"/>
+                        <lvc:CartesianChart Grid.Row="1" x:Name="JiroskopZChart" Margin="4"/>
+                    </Grid>
+                </Border>
+
+                <!-- İvme X Chart -->
+                <Border Grid.Column="2" Grid.Row="2" Style="{StaticResource ChartCardStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="İvme X (m/s²)" Style="{StaticResource ChartTitleStyle}"/>
+                        <lvc:CartesianChart Grid.Row="1" x:Name="IvmeXChart" Margin="4"/>
+                    </Grid>
+                </Border>
+
+                <!-- İvme Y Chart -->
+                <Border Grid.Column="3" Grid.Row="2" Style="{StaticResource ChartCardStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="İvme Y (m/s²)" Style="{StaticResource ChartTitleStyle}"/>
+                        <lvc:CartesianChart Grid.Row="1" x:Name="IvmeYChart" Margin="4"/>
+                    </Grid>
+                </Border>
+
+                <!-- İvme Z Chart -->
+                <Border Grid.Column="0" Grid.Row="3" Style="{StaticResource ChartCardStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="İvme Z (m/s²)" Style="{StaticResource ChartTitleStyle}"/>
+                        <lvc:CartesianChart Grid.Row="1" x:Name="IvmeZChart" Margin="4"/>
+                    </Grid>
+                </Border>
+
+                <!-- Açı Chart -->
+                <Border Grid.Column="1" Grid.Row="3" Style="{StaticResource ChartCardStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="Açı (°)" Style="{StaticResource ChartTitleStyle}"/>
+                        <lvc:CartesianChart Grid.Row="1" x:Name="AciChart" Margin="4"/>
+                    </Grid>
+                </Border>
+
+                <!-- Bilgi Kartları -->
+                <Border Grid.Column="2" Grid.Row="3" Style="{StaticResource ChartCardStyle}">
+                    <Grid>
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <FontIcon Glyph="&#xE9D2;" 
+                                      Foreground="{StaticResource AccentBrush}" 
+                                      FontSize="28" 
+                                      HorizontalAlignment="Center"/>
+                            <TextBlock Text="SUT Chart Sistemi"
+                                       HorizontalAlignment="Center"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource AccentBrush}"
+                                       Margin="0,8,0,0"/>
+                            <TextBlock Text="14 Telemetri Grafiği"
+                                       HorizontalAlignment="Center"
+                                       FontSize="11"
+                                       Foreground="{StaticResource SecondaryBrush}"/>
+                            <TextBlock Text="+ GPS Harita Takip"
+                                       HorizontalAlignment="Center"
+                                       FontSize="11"
+                                       Foreground="{StaticResource SuccessBrush}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Border Grid.Column="3" Grid.Row="3" Style="{StaticResource ChartCardStyle}">
+                    <Grid>
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <FontIcon Glyph="&#xE81D;" 
+                                      Foreground="{StaticResource SuccessBrush}" 
+                                      FontSize="24" 
+                                      HorizontalAlignment="Center"/>
+                            <TextBlock Text="Gerçek Zamanlı"
+                                       HorizontalAlignment="Center"
+                                       FontSize="13"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource SuccessBrush}"
+                                       Margin="0,6,0,0"/>
+                            <TextBlock Text="🔴 Roket Konumu"
+                                       HorizontalAlignment="Center"
+                                       FontSize="10"
+                                       Foreground="LightCoral"
+                                       Margin="0,2,0,0"/>
+                            <TextBlock Text="🟢 Payload Konumu"
+                                       HorizontalAlignment="Center"
+                                       FontSize="10"
+                                       Foreground="LightGreen"/>
+                            <TextBlock Text="📍 Uçuş Rotaları"
+                                       HorizontalAlignment="Center"
+                                       FontSize="10"
+                                       Foreground="{StaticResource SecondaryBrush}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </ScrollViewer>
     </Grid>
 </Page>
