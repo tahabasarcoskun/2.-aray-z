@@ -50,7 +50,7 @@ namespace copilot_deneme
             {
                 await MapWebView.EnsureCoreWebView2Async();
                 
-                // HTML harita sayfasý oluþtur - sitPage için büyük versiyonu
+              
                 string mapHtml = CreateSitPageMapHtml();
                 MapWebView.NavigateToString(mapHtml);
                 
@@ -69,7 +69,7 @@ namespace copilot_deneme
 <!DOCTYPE html>
 <html>
 <head>
-    <title>SÝT GPS Takip Sistemi - Ana Harita</title>
+    <title>Roket GPS Takip Sistemi - Ana Harita</title>
     <meta charset='utf-8' />
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css' />

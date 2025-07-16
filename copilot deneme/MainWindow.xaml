@@ -67,9 +67,14 @@
                         <FontIcon Glyph="&#xE713;" Foreground="#C7CEEA"/>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItem Content="Test" Tag="test">
+                <NavigationViewItem Content="Roket" Tag="test">
                     <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE916;" Foreground="#FF6B73"/>
+                        <ImageIcon Source="/Assets/rocket-128.png" Foreground="#FF6B73"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="HYİ Testi" Tag="HYİ">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="$#xE713" Foreground="AntiqueWhite"/>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
             </NavigationView.MenuItems>

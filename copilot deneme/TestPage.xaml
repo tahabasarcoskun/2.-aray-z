@@ -18,8 +18,8 @@
         <SelectorBar x:Name="SelectorBar2" 
                      Grid.Row="0"
                      SelectionChanged="SelectorBar2_SelectionChanged">
-            <SelectorBarItem x:Name="SIT" Text="SİT" IsSelected="True" />
-            <SelectorBarItem x:Name="SUT" Text="SUT" />
+            <SelectorBarItem x:Name="SIT" Text="Roket" IsSelected="True" />
+            <SelectorBarItem x:Name="SUT" Text="Payload" />
         </SelectorBar>
 
         <!-- Navigation Frame -->

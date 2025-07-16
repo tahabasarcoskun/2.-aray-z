@@ -111,20 +111,6 @@ namespace copilot_deneme.ViewModels
                     Stroke = new SolidColorPaint(SKColors.IndianRed) { StrokeThickness = 3 },
                     Fill = null, GeometrySize = 0
                 },
-                new LineSeries<ObservableValue>
-                {
-                    Name = "X Ývmesi",
-                    Values = _accelXValue,
-                    Stroke = new SolidColorPaint(SKColors.Green) { StrokeThickness = 2 },
-                    Fill = null, GeometrySize = 0
-                },
-                new LineSeries<ObservableValue>
-                {
-                    Name = "Y Ývmesi",
-                    Values = _accelYValue,
-                    Stroke = new SolidColorPaint(SKColors.Orange) { StrokeThickness = 2 },
-                    Fill = null, GeometrySize = 0
-                }
             };
 
             SpeedSeries = new ObservableCollection<ISeries>

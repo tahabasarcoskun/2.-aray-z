@@ -72,7 +72,13 @@ namespace copilot_deneme
                             ContentFrame.Navigate(typeof(TestPage));
                         });
                         break;
-                        // Diðerleri...
+                    case "HYÝ":
+                        // Giriþ kontrolünü kaldýr, doðrudan TestPage'e git
+                        DispatcherQueue.TryEnqueue(() =>
+                        {
+                            ContentFrame.Navigate(typeof(HYI));
+                        });
+                        break;
                 }
             }
         }

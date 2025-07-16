@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
@@ -16,11 +16,11 @@
     <Content Remove="Assets\line-chart-128.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Remove="AccountPage.xaml" />
     <None Remove="Assets\line-chart-128.png" />
     <None Remove="Assets\teamlogo.png" />
     <None Remove="ChartPage.xaml" />
     <None Remove="HomePage.xaml" />
+    <None Remove="HYI.xaml" />
     <None Remove="SettingPage.xaml" />
     <None Remove="sitPage.xaml" />
     <None Remove="sutPage.xaml" />
@@ -67,6 +67,11 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Page Update="HYI.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
     <Page Update="ChartPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -88,11 +93,6 @@
   </ItemGroup>
   <ItemGroup>
     <Page Update="SettingPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Update="AccountPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>

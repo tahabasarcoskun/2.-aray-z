@@ -1,10 +1,11 @@
+using copilot_deneme.ViewModels;
+using Microsoft.UI.Dispatching;
 using System;
+using System.Globalization;
 using System.IO.Ports;
 using System.Threading;
 using System.Windows;
-using Microsoft.UI.Dispatching;
-using copilot_deneme.ViewModels;
-using System.Globalization;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace copilot_deneme
 {
@@ -183,6 +184,9 @@ namespace copilot_deneme
                 System.Diagnostics.Debug.WriteLine($"Raw data was: '{data}'");
             }
         }
+
+       
+        
 
         private static void NotifySitPage(float roketIrtifa, float roketGpsIrtifa, float roketGpsEnlem, float roketGpsBoylam,
                                          float payloadIrtifa, float payloadGpsEnlem, float payloadGpsBoylam,
@@ -526,4 +530,7 @@ namespace copilot_deneme
         public float PayloadPressure { get; set; }
         public float PayloadHumidity { get; set; }
     }
+
+    //HYI için telemetri veri sýnýfý
+   
 }
