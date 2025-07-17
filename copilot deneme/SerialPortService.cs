@@ -531,6 +531,6 @@ namespace copilot_deneme
         public float PayloadHumidity { get; set; }
     }
 
-    //HYI için telemetri veri sýnýfý
+    
    
 }

@@ -1,33 +1,23 @@
-﻿// SerialPortManager.cs
-using Microsoft.UI.Dispatching;
+﻿using Microsoft.UI.Dispatching;
 using System;
 using System.Collections.Generic;
 using System.IO.Ports;
 
 namespace copilot_deneme
 {
-    /// <summary>
-    /// Tek bir seri port bağlantısını yönetmek için tasarlanmış yeniden kullanılabilir sınıf.
-    /// Gelen binary veriyi tamponlar, doğrular ve tam bir paket alındığında olayı tetikler.
-    /// </summary>
     public class SerialPortServiceHYI
     {
         private SerialPort _serialPort;
         private readonly DispatcherQueue _dispatcher;
         private readonly List<byte> _buffer = new List<byte>();
 
-        /// <summary>
-        /// Arduino'dan tam ve doğrulanmış bir veri paketi (payload) alındığında tetiklenir.
-        /// </summary>
-        public event Action<byte[]> PacketReceived;
+        public event Action<HYITelemetryData> PacketReceived;
 
         public bool IsOpen => _serialPort != null && _serialPort.IsOpen;
         public string PortName => _serialPort?.PortName;
 
-        // Arduino'dan gelen beklenen paket yapısı
-        private const int PAYLOAD_SIZE = 44; // 11 adet float * 4 byte/float
-        private readonly byte[] HEADER = { 0xAA, 0x55 };
-        private const int PACKET_SIZE_FROM_ARDUINO = 2 + PAYLOAD_SIZE + 1; // Header(2) + Payload(44) + Checksum(1) = 47 bytes
+        private const int PACKET_SIZE_FROM_ARDUINO = 78;
+        private readonly byte[] HEADER = { 0xFF, 0xFF, 0x54, 0x52 };
 
         public SerialPortServiceHYI(DispatcherQueue dispatcher)
         {
@@ -92,33 +82,29 @@ namespace copilot_deneme
 
         private void ProcessBuffer()
         {
-            // Tam bir paket için yeterli byte var mı diye sürekli kontrol et.
             while (_buffer.Count >= PACKET_SIZE_FROM_ARDUINO)
             {
-                // Paketin başlangıç header'ını ara.
-                if (_buffer[0] == HEADER[0] && _buffer[1] == HEADER[1])
+                if (_buffer[0] == HEADER[0] && _buffer[1] == HEADER[1] &&
+                    _buffer[2] == HEADER[2] && _buffer[3] == HEADER[3])
                 {
                     byte[] packet = _buffer.GetRange(0, PACKET_SIZE_FROM_ARDUINO).ToArray();
-                    byte receivedChecksum = packet[PACKET_SIZE_FROM_ARDUINO - 1];
-                    byte calculatedChecksum = CalculateChecksum(packet, 2, PAYLOAD_SIZE);
+                    byte calculatedChecksum = CalculateChecksum(packet, 4, 71);
+                    byte receivedChecksum = packet[75];
 
                     if (receivedChecksum == calculatedChecksum)
                     {
-                        // Checksum doğruysa, payload'u ayıkla ve event'i tetikle.
-                        byte[] payload = new byte[PAYLOAD_SIZE];
-                        Array.Copy(packet, 2, payload, 0, PAYLOAD_SIZE);
-                        _dispatcher.TryEnqueue(() => PacketReceived?.Invoke(payload));
+                        var telemetryData = ParseHYIData(packet);
+                        _dispatcher.TryEnqueue(() => PacketReceived?.Invoke(telemetryData));
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine("Checksum hatası! Gelen paket atlanıyor.");
+                        System.Diagnostics.Debug.WriteLine("Checksum hatası! Paket atlandı.");
                     }
-                    // İşlenen (veya hatalı) paketi buffer'dan kaldır.
+
                     _buffer.RemoveRange(0, PACKET_SIZE_FROM_ARDUINO);
                 }
                 else
                 {
-                    // Hatalı başlangıç byte'ını atla ve bir sonraki byte'tan devam et.
                     _buffer.RemoveAt(0);
                 }
             }
@@ -126,19 +112,46 @@ namespace copilot_deneme
 
         private byte CalculateChecksum(byte[] data, int offset, int length)
         {
-            byte checksum = 0;
-            for (int i = 0; i < length; i++)
+            int sum = 0;
+            for (int i = offset; i < offset + length; i++)
             {
-                checksum ^= data[offset + i];
+                sum += data[i];
             }
-            return checksum;
+            return (byte)(sum % 256);
+        }
+
+        private HYITelemetryData ParseHYIData(byte[] packet)
+        {
+            HYITelemetryData data = new HYITelemetryData();
+            data.TeamId = packet[4];
+            data.PacketCounter = packet[5];
+            data.Altitude = BitConverter.ToSingle(packet, 6);
+            data.RocketGpsAltitude = BitConverter.ToSingle(packet, 10);
+            data.RocketLatitude = BitConverter.ToSingle(packet, 14);
+            data.RocketLongitude = BitConverter.ToSingle(packet, 18);
+            data.PayloadGpsAltitude = BitConverter.ToSingle(packet, 22);
+            data.PayloadLatitude = BitConverter.ToSingle(packet, 26);
+            data.PayloadLongitude = BitConverter.ToSingle(packet, 30);
+            data.StageGpsAltitude = BitConverter.ToSingle(packet, 34);
+            data.StageLatitude = BitConverter.ToSingle(packet, 38);
+            data.StageLongitude = BitConverter.ToSingle(packet, 42);
+            data.GyroscopeX = BitConverter.ToSingle(packet, 46);
+            data.GyroscopeY = BitConverter.ToSingle(packet, 50);
+            data.GyroscopeZ = BitConverter.ToSingle(packet, 54);
+            data.AccelerationX = BitConverter.ToSingle(packet, 58);
+            data.AccelerationY = BitConverter.ToSingle(packet, 62);
+            data.AccelerationZ = BitConverter.ToSingle(packet, 66);
+            data.Angle = BitConverter.ToSingle(packet, 70);
+            data.Status = packet[74];
+            data.CRC = packet[75];
+            return data;
         }
     }
+
     public class HYITelemetryData
     {
         public byte TeamId { get; set; }
         public byte PacketCounter { get; set; }
-        public byte Status { get; set; }
         public float Altitude { get; set; }
         public float RocketGpsAltitude { get; set; }
         public float RocketLatitude { get; set; }
@@ -146,9 +159,9 @@ namespace copilot_deneme
         public float PayloadGpsAltitude { get; set; }
         public float PayloadLatitude { get; set; }
         public float PayloadLongitude { get; set; }
-        public float StageGpsAltitude { get; set; } // Sadece Zorlu Görev için
-        public float StageLatitude { get; set; }    // Sadece Zorlu Görev için
-        public float StageLongitude { get; set; }   // Sadece Zorlu Görev için
+        public float StageGpsAltitude { get; set; }
+        public float StageLatitude { get; set; }
+        public float StageLongitude { get; set; }
         public float GyroscopeX { get; set; }
         public float GyroscopeY { get; set; }
         public float GyroscopeZ { get; set; }
@@ -156,5 +169,7 @@ namespace copilot_deneme
         public float AccelerationY { get; set; }
         public float AccelerationZ { get; set; }
         public float Angle { get; set; }
+        public byte Status { get; set; }
+        public byte CRC { get; set; }
     }
 }

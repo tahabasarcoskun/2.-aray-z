@@ -1,4 +1,3 @@
-// HYI.xaml.cs
 using Microsoft.UI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
@@ -14,26 +13,20 @@ namespace copilot_deneme
     public sealed partial class HYI : Page
     {
         private DispatcherQueue _dispatcherQueue;
-
-        // Ýki ayrý port yöneticisi
-        private SerialPortServiceHYI _inputPortManager;// Arduino'dan veri almak için
-        private SerialPortServiceHYI _outputPortManager; // Veriyi hedefe göndermek için
-
-        private ushort _packetCounter = 0; // Giden paketler için sayaç
+        private SerialPortServiceHYI _inputPortManager;
+        private SerialPortServiceHYI _outputPortManager;
+        private ushort _packetCounter = 0;
 
         public HYI()
         {
             this.InitializeComponent();
             _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
-            // Port yöneticilerini baþlat
             _inputPortManager = new SerialPortServiceHYI(_dispatcherQueue);
             _outputPortManager = new SerialPortServiceHYI(_dispatcherQueue);
 
-            // Arduino'dan doðrulanmýþ bir paket geldiðinde tetiklenecek olayý (event) baðlýyoruz.
             _inputPortManager.PacketReceived += OnArduinoPacketReceived;
 
-            // Sayfa kapatýldýðýnda portlarý serbest býrakmak için
             this.Unloaded += (s, e) =>
             {
                 _inputPortManager.Stop();
@@ -43,58 +36,10 @@ namespace copilot_deneme
             RefreshAvailablePorts();
         }
 
-        /// <summary>
-        /// Arduino'dan tam ve doðrulanmýþ bir payload paketi geldiðinde bu metot çalýþýr.
-        /// </summary>
-        /// <param name="arduinoPayload">Arduino'dan gelen 44 byte'lýk ham sensör verisi.</param>
-        private void OnArduinoPacketReceived(byte[] arduinoPayload)
+        private void OnArduinoPacketReceived(HYITelemetryData data)
         {
-            System.Diagnostics.Debug.WriteLine($"Ýþleniyor: {arduinoPayload.Length} byte'lýk Arduino payload'u.");
-
-            // Veriyi sadece çýkýþ portu açýksa gönder
-            if (!_outputPortManager.IsOpen)
-            {
-                _dispatcherQueue.TryEnqueue(() =>
-                {
-                    StatusText_Output.Text = "Çýkýþ portu kapalý, veri gönderilemiyor.";
-                    StatusText_Output.Foreground = new SolidColorBrush(Colors.OrangeRed);
-                });
-                return;
-            }
-
-            try
-            {
-                // Giden paket için meta verileri oluþtur
-                var metaData = new HYITelemetryData
-                {
-                    TeamId = 0x54, // Örnek Takým ID'si
-                    PacketCounter = (byte)(_packetCounter++ % 256),
-                    Status = 0x01 // Örnek durum: Uçuþta
-                };
-
-                // Arduino'dan gelen ham payload'u ve meta veriyi kullanarak 78 byte'lýk paketi oluþtur.
-                byte[] packetToSend = HYIDataPacket(metaData, arduinoPayload);
-
-                // Paketi çýkýþ portundan gönder.
-                _outputPortManager.Write(packetToSend);
-
-                _dispatcherQueue.TryEnqueue(() =>
-                {
-                    StatusText_Output.Text = $"{_packetCounter}. paket gönderildi.";
-                    StatusText_Output.Foreground = new SolidColorBrush(Colors.Green);
-                });
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Paket gönderme hatasý: {ex.Message}");
-                _dispatcherQueue.TryEnqueue(() =>
-                {
-                    StatusText_Output.Text = "Paket gönderme hatasý!";
-                    StatusText_Output.Foreground = new SolidColorBrush(Colors.Red);
-                });
-            }
+            HYITelemetryUpdate(data);
         }
-
 
         private void RefreshPorts_Click(object sender, RoutedEventArgs e)
         {
@@ -157,7 +102,7 @@ namespace copilot_deneme
                 var baudRate = int.Parse((BaudRateComboBox_Output.SelectedItem as ComboBoxItem).Content.ToString());
 
                 _outputPortManager.Initialize(portName, baudRate);
-                _outputPortManager.Start(); // Portu sadece yazma iþlemi için de olsa açmamýz gerekir.
+                _outputPortManager.Start();
 
                 StatusIndicator_Output.Fill = new SolidColorBrush(Colors.LightGreen);
                 StatusText_Output.Text = $"Baðlandý: {portName}";
@@ -176,62 +121,44 @@ namespace copilot_deneme
             StatusText_Output.Text = "Çýkýþ Portu Kapalý";
         }
 
-       
-
         /// <summary>
-        /// Meta verileri ve Arduino'dan gelen ham payload'u birleþtirerek standart 78 byte'lýk paketi oluþturur.
+        /// HYI'ye ait UI'yý gelen verilerle günceller.
         /// </summary>
-         static byte[] HYIDataPacket(HYITelemetryData metaData, byte[] arduinoPayload)
+        private void HYITelemetryUpdate(HYITelemetryData data)
         {
-            byte[] packet = new byte[78];
-            packet[0] = 0xFF; // Start Byte 1
-            packet[1] = 0xFF; // Start Byte 2
-            packet[2] = 0x54; // Header 1
-            packet[3] = 0x52; // Header 2
-            packet[4] = metaData.TeamId;
-            packet[5] = metaData.PacketCounter;
+            if (data == null) return;
 
-            // Arduino'dan gelen 44 byte'lýk ham veriyi (11 float) doðrudan paketin doðru yerlerine kopyala.
-            // Bu yöntem, string parse etmekten çok daha hýzlý ve güvenilirdir.
-
-            // Arduino Payload Sýrasý: Altitude(4), GpsAlt(4), Lat(4), Lon(4), GyroX(4)... (Toplam 11 float)
-            // Hedef Paket Konumlarý: Altitude->6, GpsAlt->10, Lat->14, Lon->18, ..., GyroX->46, ...
-
-            Array.Copy(arduinoPayload, 0, packet, 6, 4);   // Altitude (irtifa)
-            Array.Copy(arduinoPayload, 4, packet, 10, 4);  // RocketGpsAltitude
-            Array.Copy(arduinoPayload, 8, packet, 14, 4);  // RocketLatitude
-            Array.Copy(arduinoPayload, 12, packet, 18, 4); // RocketLongitude
-
-            // Payload GPS verileri bu örnekte Arduino'dan gönderilmediði varsayýldý.
-            // Eðer gönderiliyorsa, arduinoPayload'daki doðru ofsetlerden kopyalanmalýdýr.
-            // Örn: Array.Copy(arduinoPayload, 16, packet, 22, 4); // PayloadGPSAltitude
-
-            Array.Copy(arduinoPayload, 16, packet, 46, 4); // GyroscopeX
-            Array.Copy(arduinoPayload, 20, packet, 50, 4); // GyroscopeY
-            Array.Copy(arduinoPayload, 24, packet, 54, 4); // GyroscopeZ
-            Array.Copy(arduinoPayload, 28, packet, 58, 4); // AccelerationX
-            Array.Copy(arduinoPayload, 32, packet, 62, 4); // AccelerationY
-            Array.Copy(arduinoPayload, 36, packet, 66, 4); // AccelerationZ
-            Array.Copy(arduinoPayload, 40, packet, 70, 4); // Angle
-
-            packet[74] = metaData.Status;
-            packet[75] = CheckSum(packet); // Checksum hesapla
-            packet[76] = 0x0D; // End Byte 1
-            packet[77] = 0x0A; // End Byte 2
-            return packet;
-        }
-
-        private static byte CheckSum(byte[] data)
-        {
-            int sum = 0;
-            // Kurala göre 4. ve 74. byte'lar (dahil) arasý toplanýr.
-            for (int i = 4; i <= 74; i++)
+            _dispatcherQueue.TryEnqueue(() =>
             {
-                sum += data[i];
-            }
-            return (byte)(sum % 256);
+                try
+                {
+                    takýmID.Text = data.TeamId.ToString();
+                    sayac.Text = data.PacketCounter.ToString();
+                    irtifa.Text = data.Altitude.ToString("F2");
+                    RoketGPSirtifa.Text = data.RocketGpsAltitude.ToString("F2");
+                    roketenlem.Text = data.RocketLatitude.ToString("F6");
+                    roketboylam.Text = data.RocketLongitude.ToString("F6");
+                    payloadGPSirtifa.Text = data.PayloadGpsAltitude.ToString("F2");
+                    payloadGPSenlem.Text = data.PayloadLatitude.ToString("F6");
+                    payloadGPSboylam.Text = data.PayloadLongitude.ToString("F6");
+                    kademeGPSirtifa.Text = data.StageGpsAltitude.ToString("F2");
+                    kademeGPSenlem.Text = data.StageLatitude.ToString("F6");
+                    kademeGPSboylam.Text = data.StageLongitude.ToString("F6");
+                    gyroX.Text = data.GyroscopeX.ToString("F2");
+                    gyroY.Text = data.GyroscopeY.ToString("F2");
+                    gyroZ.Text = data.GyroscopeZ.ToString("F2");
+                    accelX.Text = data.AccelerationX.ToString("F2");
+                    accelY.Text = data.AccelerationY.ToString("F2");
+                    accelZ.Text = data.AccelerationZ.ToString("F2");
+                    aci.Text = data.Angle.ToString("F2");
+                    durum.Text = data.Status.ToString();
+                    checksum.Text = data.CRC.ToString();
+                }
+                catch (Exception)
+                {
+                    // Opsiyonel: Hata loglamak istersen buraya yaz.
+                }
+            });
         }
-
-      
     }
 }
