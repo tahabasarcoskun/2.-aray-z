@@ -41,7 +41,8 @@ namespace copilot_deneme
         /// <param name="args">Details about the launch request and process.</param>
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
-            Console.WriteLine("App launched!");
+            System.Diagnostics.Debug.WriteLine("🚀 Uygulama başlatılıyor - MainWindow loading screen ile");
+            
             m_window = new MainWindow();
             Main_Window = m_window as MainWindow;
             m_window.Activate();

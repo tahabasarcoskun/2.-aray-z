@@ -11,8 +11,12 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
+using Microsoft.UI.Xaml.Media.Animation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Microsoft.UI.Windowing;
+using Microsoft.UI;
+using WinRT.Interop;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -24,61 +28,246 @@ namespace copilot_deneme
     /// </summary>
     public sealed partial class MainWindow : Window
     {
-        // MainWindow.xaml.cs veya App.xaml.cs içinde
+        private Type _currentPageType; // Mevcut sayfa türünü takip etmek için
+        private int _currentPageIndex = 0; // Mevcut sayfa indeksini takip etmek için
+        private DispatcherTimer? _splashTimer; // Splash screen timer'ý
+
+        // Navigation sýrasýný tanýmla
+        private readonly Dictionary<Type, int> _pageIndexMap = new Dictionary<Type, int>
+        {
+            { typeof(HomePage), 0 },
+            { typeof(ChartPage), 1 },
+            { typeof(SettingPage), 2 },
+            { typeof(sitPage), 3 },
+            { typeof(HYI), 4 }
+        };
+
         public MainWindow()
         {
             this.InitializeComponent();
+            
+            // Custom title bar ayarlarý
+            SetupCustomTitleBar();
+            
+            // Splash screen'i baþlat
+            StartSplashScreen();
+        }
+
+        private void StartSplashScreen()
+        {
+            // Splash overlay'i göster, ana içeriði gizle
+            SplashOverlay.Visibility = Visibility.Visible;
+            SplashOverlay.Opacity = 1.0;
+            MainContent.Opacity = 0.0;
+            
+            // 3 saniye timer baþlat
+            _splashTimer = new DispatcherTimer();
+            _splashTimer.Interval = TimeSpan.FromSeconds(3);
+            _splashTimer.Tick += SplashTimer_Tick;
+            _splashTimer.Start();
+            
+            System.Diagnostics.Debug.WriteLine("?? Splash screen baþlatýldý - 3 saniye görünecek");
+        }
+
+        private void SplashTimer_Tick(object? sender, object e)
+        {
+            // Timer'ý durdur
+            _splashTimer?.Stop();
+            _splashTimer = null;
+            
+            // Fade efekti ile geçiþ yap
+            StartFadeTransition();
+            
+            System.Diagnostics.Debug.WriteLine("? Splash screen süresi doldu - Fade geçiþi baþlatýlýyor");
+        }
+
+        private void StartFadeTransition()
+        {
+            // Ana uygulamayý hazýrla
+            InitializeMainApp();
+            
+            // C# kodu ile animasyon oluþtur
+            var fadeOutAnimation = new DoubleAnimation
+            {
+                From = 1.0,
+                To = 0.0,
+                Duration = new Duration(TimeSpan.FromMilliseconds(800)),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+            
+            var fadeOutStoryboard = new Storyboard();
+            fadeOutStoryboard.Children.Add(fadeOutAnimation);
+            Storyboard.SetTarget(fadeOutAnimation, SplashOverlay);
+            Storyboard.SetTargetProperty(fadeOutAnimation, "Opacity");
+            
+            fadeOutStoryboard.Completed += (s, e) =>
+            {
+                // Splash overlay'i gizle
+                SplashOverlay.Visibility = Visibility.Collapsed;
+                
+                // Ana içeriðin fade in animasyonunu baþlat
+                StartMainContentFadeIn();
+            };
+            
+            fadeOutStoryboard.Begin();
+            System.Diagnostics.Debug.WriteLine("?? Splash fade out animasyonu baþlatýldý");
+        }
+
+        private void StartMainContentFadeIn()
+        {
+            // Ana içeriði görünür yap (henüz opacity 0)
+            MainContent.Visibility = Visibility.Visible;
+            
+            // C# kodu ile fade in animasyonu oluþtur
+            var fadeInAnimation = new DoubleAnimation
+            {
+                From = 0.0,
+                To = 1.0,
+                Duration = new Duration(TimeSpan.FromMilliseconds(1000)),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
+            };
+            
+            var fadeInStoryboard = new Storyboard();
+            fadeInStoryboard.Children.Add(fadeInAnimation);
+            Storyboard.SetTarget(fadeInAnimation, MainContent);
+            Storyboard.SetTargetProperty(fadeInAnimation, "Opacity");
+            
+            fadeInStoryboard.Completed += (s, e) =>
+            {
+                System.Diagnostics.Debug.WriteLine("? Ana içerik fade in animasyonu tamamlandý");
+            };
+            
+            fadeInStoryboard.Begin();
+            System.Diagnostics.Debug.WriteLine("?? Ana içerik fade in animasyonu baþlatýldý");
+        }
+
+        private void InitializeMainApp()
+        {
             DispatcherQueue.TryEnqueue(() =>
             {
                 // Giriþ ekranýný atla, doðrudan HomePage'e git
-                ContentFrame.Navigate(typeof(HomePage));
+                _currentPageType = typeof(HomePage);
+                _currentPageIndex = _pageIndexMap[_currentPageType];
+                ContentFrame.Navigate(_currentPageType);
+                
+                // NavigationView'da ilk öðeyi seçili yap
+                if (NavigationView.MenuItems.Count > 0)
+                {
+                    NavigationView.SelectedItem = NavigationView.MenuItems[0];
+                }
             });
+        }
+
+        private void SetupCustomTitleBar()
+        {
+            try
+            {
+                // Window handle'ýný al
+                var hWnd = WindowNative.GetWindowHandle(this);
+                var windowId = Win32Interop.GetWindowIdFromWindow(hWnd);
+                var appWindow = AppWindow.GetFromWindowId(windowId);
+
+                if (appWindow != null)
+                {
+                    // Title bar'ý özelleþtir
+                    appWindow.TitleBar.ExtendsContentIntoTitleBar = true;
+                    appWindow.TitleBar.ButtonBackgroundColor = Windows.UI.Color.FromArgb(255, 15, 15, 35);
+                    appWindow.TitleBar.ButtonForegroundColor = Windows.UI.Color.FromArgb(255, 255, 255, 255);
+                    appWindow.TitleBar.ButtonInactiveBackgroundColor = Windows.UI.Color.FromArgb(255, 15, 15, 35);
+                    appWindow.TitleBar.ButtonInactiveForegroundColor = Windows.UI.Color.FromArgb(255, 128, 128, 128);
+                    appWindow.TitleBar.ButtonHoverBackgroundColor = Windows.UI.Color.FromArgb(255, 255, 217, 61);
+                    appWindow.TitleBar.ButtonHoverForegroundColor = Windows.UI.Color.FromArgb(255, 0, 0, 0);
+                    appWindow.TitleBar.ButtonPressedBackgroundColor = Windows.UI.Color.FromArgb(255, 199, 206, 234);
+                    appWindow.TitleBar.ButtonPressedForegroundColor = Windows.UI.Color.FromArgb(255, 0, 0, 0);
+
+                    // Draggable region ayarla
+                    appWindow.TitleBar.SetDragRectangles(new Windows.Graphics.RectInt32[] 
+                    { 
+                        new Windows.Graphics.RectInt32 { X = 0, Y = 0, Width = 10000, Height = 48 } 
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Custom title bar setup error: {ex.Message}");
+            }
+        }
+
+        private NavigationTransitionInfo GetNavigationTransition(int currentIndex, int targetIndex)
+        {
+            if (targetIndex > currentIndex)
+            {
+                // Saða doðru kayma (liste sýrasýnda aþaðýda) - FromRight kullan
+                return new SlideNavigationTransitionInfo()
+                {
+                    Effect = SlideNavigationTransitionEffect.FromRight
+                };
+            }
+            else if (targetIndex < currentIndex)
+            {
+                // Sola doðru kayma (liste sýrasýnda yukarýda) - FromLeft kullan
+                return new SlideNavigationTransitionInfo()
+                {
+                    Effect = SlideNavigationTransitionEffect.FromLeft
+                };
+            }
+            else
+            {
+                // Ayný sayfa - varsayýlan geçiþ
+                return new EntranceNavigationTransitionInfo();
+            }
         }
 
         private void NavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
             if (args.SelectedItem is NavigationViewItem selectedItem)
             {
+                Type? targetPageType = null;
+
                 switch (selectedItem.Tag)
                 {
                     case "home":
-                        // Giriþ kontrolünü kaldýr, doðrudan HomePage'e git
-                        DispatcherQueue.TryEnqueue(() =>
-                        {
-                            ContentFrame.Navigate(typeof(HomePage));
-                        });
+                        targetPageType = typeof(HomePage);
                         break;
                     
                     case "profile":
-                        // Giriþ kontrolünü kaldýr, doðrudan ChartPage'e git
-                        DispatcherQueue.TryEnqueue(() =>
-                        {
-                            ContentFrame.Navigate(typeof(ChartPage));
-                        });
+                        targetPageType = typeof(ChartPage);
                         break;
                     
                     case "settings":
-                        // Giriþ kontrolünü kaldýr, doðrudan SettingPage'e git
-                        DispatcherQueue.TryEnqueue(() =>
-                        {
-                            ContentFrame.Navigate(typeof(SettingPage));
-                        });
+                        targetPageType = typeof(SettingPage);
                         break;
                     
                     case "test":
-                        // Giriþ kontrolünü kaldýr, doðrudan TestPage'e git
-                        DispatcherQueue.TryEnqueue(() =>
-                        {
-                            ContentFrame.Navigate(typeof(TestPage));
-                        });
+                        targetPageType = typeof(sitPage);
                         break;
+                        
                     case "HYÝ":
-                        // Giriþ kontrolünü kaldýr, doðrudan TestPage'e git
-                        DispatcherQueue.TryEnqueue(() =>
-                        {
-                            ContentFrame.Navigate(typeof(HYI));
-                        });
+                        targetPageType = typeof(HYI);
                         break;
+                }
+
+                // Sadece farklý bir sayfa seçildiyse navigate et
+                if (targetPageType != null && targetPageType != _currentPageType)
+                {
+                    var targetIndex = _pageIndexMap[targetPageType];
+                    var transition = GetNavigationTransition(_currentPageIndex, targetIndex);
+
+                    DispatcherQueue.TryEnqueue(() =>
+                    {
+                        ContentFrame.Navigate(targetPageType, null, transition);
+                        _currentPageType = targetPageType;
+                        _currentPageIndex = targetIndex;
+                        
+                        string direction = targetIndex > _currentPageIndex ? "?? Saða (FromRight)" : "?? Sola (FromLeft)";
+                        System.Diagnostics.Debug.WriteLine($"?? Navigated to: {targetPageType.Name}");
+                        System.Diagnostics.Debug.WriteLine($"?? Transition: {direction}");
+                        System.Diagnostics.Debug.WriteLine($"?? Index: {_currentPageIndex} ? {targetIndex}");
+                    });
+                }
+                else if (targetPageType == _currentPageType)
+                {
+                    System.Diagnostics.Debug.WriteLine($"?? Already on {targetPageType?.Name}, navigation prevented");
                 }
             }
         }

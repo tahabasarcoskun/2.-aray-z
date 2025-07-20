@@ -26,6 +26,9 @@
     <None Remove="sutPage.xaml" />
     <None Remove="TestPage.xaml" />
   </ItemGroup>
+  <ItemGroup>
+    <Page Remove="SplashScreen.xaml" />
+  </ItemGroup>
 	
   <ItemGroup>
     <Content Include="Assets\SplashScreen.scale-200.png" />
@@ -65,6 +68,11 @@
     <Content Update="Assets\teamlogo.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="SplashScreen.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Page Update="HYI.xaml">

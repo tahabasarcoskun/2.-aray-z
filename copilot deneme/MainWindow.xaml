@@ -7,7 +7,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:lvc="using:LiveChartsCore.SkiaSharpView.WinUI"
     mc:Ignorable="d"
-    Title="copilot deneme">
+    Title="🚀 Roket Telemetri Sistemi - Takım Telemetri İstasyonu">
+    
     <Grid>
         <!-- Gradient arka plan -->
         <Grid.Background>
@@ -17,69 +18,216 @@
             </LinearGradientBrush>
         </Grid.Background>
         
-        <NavigationView PaneDisplayMode="Left"
-                        IsBackButtonVisible="Collapsed"
-                        IsSettingsVisible="False"
-                        SelectionChanged="NavigationView_SelectionChanged"
-                        x:Name="NavigationView"
-                        OpenPaneLength="250">
+        <!-- Ana İçerik (başlangıçta gizli) -->
+        <Grid x:Name="MainContent" Opacity="0">
+            <!-- Custom Title Bar -->
+            <Border x:Name="AppTitleBar" 
+                    Height="48" 
+                    VerticalAlignment="Top" 
+                    Background="#0F0F23" 
+                    BorderBrush="#FFD93D" 
+                    BorderThickness="0,0,0,2"
+                    Translation="0,0,8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <!-- Logo ve Uygulama Adı -->
+                    <StackPanel Grid.Column="0" 
+                               Orientation="Horizontal" 
+                               VerticalAlignment="Center" 
+                               Margin="16,0,0,0">
+                        <!-- Team Logo -->
+                        <Border Width="32" Height="32" 
+                                CornerRadius="16" 
+                                Background="White"
+                                BorderBrush="#FFD93D"
+                                BorderThickness="2"
+                                Margin="0,0,12,0">
+                            <Border CornerRadius="14">
+                                <Border.Background>
+                                    <ImageBrush ImageSource="Assets/teamlogo.png" 
+                                               Stretch="UniformToFill"/>
+                                </Border.Background>
+                            </Border>
+                        </Border>
+                        
+                        <!-- Uygulama Başlığı -->
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Roket Telemetri Sistemi" 
+                                       Foreground="White" 
+                                       FontSize="16" 
+                                       FontWeight="Bold"/>
+                        </StackPanel>
+                    </StackPanel>
+                    
+                    <!-- Minimize/Close Buttons Placeholder (Windows handles these) -->
+                    <StackPanel Grid.Column="2" 
+                               Orientation="Horizontal" 
+                               VerticalAlignment="Center"
+                               Width="138">
+                        <!-- Bu alan Windows'un varsayılan butonları için rezerve -->
+                    </StackPanel>
+                </Grid>
+            </Border>
             
-            <!-- Geliştirilmiş stil -->
-            <NavigationView.Resources>
-                <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="#16213E"/>
-                <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="#16213E"/>
-                <SolidColorBrush x:Key="NavigationViewItemForeground" Color="White"/>
-                <SolidColorBrush x:Key="NavigationViewSelectionIndicatorForeground" Color="#FFD93D"/>
-            </NavigationView.Resources>
+            <NavigationView PaneDisplayMode="Left"
+                            IsBackButtonVisible="Collapsed"
+                            IsSettingsVisible="False"
+                            SelectionChanged="NavigationView_SelectionChanged"
+                            x:Name="NavigationView"
+                            OpenPaneLength="250"
+                            Margin="0,48,0,0">
+                
+                <!-- Geliştirilmiş stil -->
+                <NavigationView.Resources>
+                    <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="#16213E"/>
+                    <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="#16213E"/>
+                    <SolidColorBrush x:Key="NavigationViewItemForeground" Color="White"/>
+                    <SolidColorBrush x:Key="NavigationViewSelectionIndicatorForeground" Color="#FFD93D"/>
+                </NavigationView.Resources>
+                
+                <!-- Geliştirilmiş header -->
+                <NavigationView.PaneHeader>
+                    <StackPanel Orientation="Vertical" Margin="16" HorizontalAlignment="Center">
+                        <Border Width="100" Height="100" CornerRadius="50"
+                                BorderBrush="#FFD93D" BorderThickness="3"
+                                Background="White"
+                                Translation="0,0,4">
+                            <Border CornerRadius="47"
+                                    Margin="3">
+                                <Border.Background>
+                                    <ImageBrush ImageSource="Assets/teamlogo.png" 
+                                               Stretch="UniformToFill"/>
+                                </Border.Background>
+                            </Border>
+                        </Border>
+                        <TextBlock Text="ROKET TELEMETRİ SİSTEMİ" 
+                                   FontSize="13" 
+                                   FontWeight="Bold" 
+                                   Foreground="#FFD93D" 
+                                   HorizontalAlignment="Center" 
+                                   Margin="0,12,0,0"/>
+                    </StackPanel>
+                </NavigationView.PaneHeader>
+                
+                <!-- Güzelleştirilmiş menü öğeleri -->
+                <NavigationView.MenuItems>
+                    <NavigationViewItem Content="Ana Sayfa" Tag="home">
+                        <NavigationViewItem.Icon>
+                            <FontIcon Glyph="&#xE80F;" Foreground="#FFD93D"/>
+                        </NavigationViewItem.Icon>
+                    </NavigationViewItem>
+                    <NavigationViewItem Content="Grafikler" Tag="profile">
+                        <NavigationViewItem.Icon>
+                            <FontIcon Glyph="&#xE9D2;" Foreground="#06FFA5"/>
+                        </NavigationViewItem.Icon>
+                    </NavigationViewItem>
+                    <NavigationViewItem Content="Port Ayarları" Tag="settings">
+                        <NavigationViewItem.Icon>
+                            <FontIcon Glyph="&#xE713;" Foreground="#C7CEEA"/>
+                        </NavigationViewItem.Icon>
+                    </NavigationViewItem>
+                    <NavigationViewItem Content="Roket Telemetri" Tag="test">
+                        <NavigationViewItem.Icon>
+                            <FontIcon Glyph="&#xE7C0;" Foreground="#FF6B73"/>
+                        </NavigationViewItem.Icon>
+                    </NavigationViewItem>
+                    <NavigationViewItem Content="HYİ Testi" Tag="HYİ">
+                        <NavigationViewItem.Icon>
+                            <FontIcon Glyph="&#xE9F9;" Foreground="#FFA726"/>
+                        </NavigationViewItem.Icon>
+                    </NavigationViewItem>
+                </NavigationView.MenuItems>
+                
+                <Frame x:Name="ContentFrame"/>
+            </NavigationView>
+        </Grid>
+        
+        <!-- Loading Splash Overlay -->
+        <Grid x:Name="SplashOverlay" 
+              Background="#1A1A2E"
+              Opacity="1.0"
+              Canvas.ZIndex="1000">
             
-            <!-- Geliştirilmiş header -->
-            <NavigationView.PaneHeader>
-                <StackPanel Orientation="Vertical" Margin="16" HorizontalAlignment="Center">
-                    <Border Width="120" Height="120" CornerRadius="60"
-                            BorderBrush="#FFD93D" BorderThickness="3">
+            <!-- Splash Content -->
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                
+                <!-- Logo Container with Scale Animation -->
+                <Border Width="200" Height="200" 
+                        CornerRadius="100"
+                        BorderBrush="#FFD93D" 
+                        BorderThickness="4"
+                        Background="White"
+                        Margin="0,0,0,40"
+                        x:Name="SplashLogo">
+                    <Border.RenderTransform>
+                        <CompositeTransform/>
+                    </Border.RenderTransform>
+                    <Border CornerRadius="96" Margin="4">
                         <Border.Background>
-                            <ImageBrush ImageSource="Assets/teamlogo.png" Stretch="UniformToFill"/>
+                            <ImageBrush ImageSource="Assets/teamlogo.png" 
+                                       Stretch="UniformToFill"/>
                         </Border.Background>
                     </Border>
-                    <TextBlock Text="ROKET TELEMETRİ" 
-                               FontSize="12" 
-                               FontWeight="Bold" 
-                               Foreground="#FFD93D" 
-                               HorizontalAlignment="Center" 
-                               Margin="0,8,0,0"/>
+                </Border>
+                
+                <!-- Uygulama Adı -->
+                <TextBlock Text="ROKET TELEMETRİ SİSTEMİ" 
+                           FontSize="28" 
+                           FontWeight="Bold" 
+                           Foreground="#FFD93D" 
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,10"/>
+                
+                <TextBlock Text="Takım Telemetri İstasyonu" 
+                           FontSize="16" 
+                           FontWeight="Medium" 
+                           Foreground="#C7CEEA" 
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,40"/>
+                
+                <!-- Loading Animasyonu -->
+                <StackPanel Orientation="Horizontal" 
+                            HorizontalAlignment="Center"
+                            Margin="0,20,0,0">
+                    
+                    <!-- Loading Progress Ring -->
+                    <ProgressRing IsActive="True" 
+                                  Width="40" 
+                                  Height="40"
+                                  Foreground="#FFD93D"
+                                  Margin="0,0,16,0"/>
+                    
+                    <TextBlock Text="Sistem Başlatılıyor..." 
+                               FontSize="14" 
+                               Foreground="#C7CEEA" 
+                               VerticalAlignment="Center"/>
                 </StackPanel>
-            </NavigationView.PaneHeader>
+                
+                <!-- Versiyon Bilgisi -->
+                <TextBlock Text="v1.0" 
+                           FontSize="12" 
+                           Foreground="#888" 
+                           HorizontalAlignment="Center"
+                           Margin="0,30,0,0"/>
+                
+            </StackPanel>
             
-            <!-- Güzelleştirilmiş menü öğeleri -->
-            <NavigationView.MenuItems>
-                <NavigationViewItem Content="Ana Sayfa" Tag="home">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE80F;" Foreground="#FFD93D"/>
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
-                <NavigationViewItem Content="Grafikler" Tag="profile">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE9D2;" Foreground="#06FFA5"/>
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
-                <NavigationViewItem Content="Port Ayarları" Tag="settings">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE713;" Foreground="#C7CEEA"/>
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
-                <NavigationViewItem Content="Roket" Tag="test">
-                    <NavigationViewItem.Icon>
-                        <ImageIcon Source="/Assets/rocket-128.png" Foreground="#FF6B73"/>
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
-                <NavigationViewItem Content="HYİ Testi" Tag="HYİ">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="$#xE713" Foreground="AntiqueWhite"/>
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
-            </NavigationView.MenuItems>
+            <!-- Alt Bilgi -->
+            <StackPanel VerticalAlignment="Bottom" 
+                        HorizontalAlignment="Center"
+                        Margin="0,0,0,30">
+                <TextBlock Text="© 2025 Roket Takımı" 
+                           FontSize="12" 
+                           Foreground="#666" 
+                           HorizontalAlignment="Center"/>
+            </StackPanel>
             
-            <Frame x:Name="ContentFrame"/>
-        </NavigationView>
+        </Grid>
+        
     </Grid>
 </Window>

@@ -75,56 +75,58 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        
-        <!-- Header -->
-        <Border Grid.Row="0" 
-                Background="{StaticResource CardBrush}" 
-                CornerRadius="16" 
-                Margin="16,16,16,8"
-                BorderBrush="{StaticResource AccentBrush}" 
-                BorderThickness="1"
-                Translation="0,0,8">
-            <StackPanel Orientation="Horizontal" 
-                        HorizontalAlignment="Center" 
-                        Margin="20,16">
-                <FontIcon Glyph="&#xE713;" 
-                          Foreground="{StaticResource AccentBrush}" 
-                          FontSize="24" 
-                          Margin="0,0,12,0"/>
-                <TextBlock Text="Sistem Ayarları"
-                           FontSize="20"
-                           FontWeight="SemiBold"
-                           Foreground="White"/>
-                <FontIcon Glyph="&#xE8B7;" 
-                          Foreground="{StaticResource SuccessBrush}" 
-                          FontSize="20" 
-                          Margin="12,0,0,0"/>
-            </StackPanel>
-        </Border>
 
-        <!-- Settings Content -->
+        
+
+            <!-- Settings Content -->
         <ScrollViewer Grid.Row="1" 
                       VerticalScrollBarVisibility="Auto"
                       Margin="16,8,16,16">
+            
             <StackPanel Spacing="16" MaxWidth="800">
+                
                 
                 <!-- Serial Port Settings Card -->
                 <Border Style="{StaticResource SettingCardStyle}"
-                        Translation="0,0,8">
+                        Translation="0,0,8"
+                        >
                     <StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
                             <FontIcon Glyph="&#xE8F1;" 
                                       Foreground="{StaticResource AccentBrush}"
-                                      Style="{StaticResource StatusIconStyle}"/>
+                                      Style="{StaticResource StatusIconStyle}"
+                                      />
                             <TextBlock Text="Seri Port Ayarları" 
-                                       Style="{StaticResource SettingTitleStyle}"/>
+                                       Style="{StaticResource SettingTitleStyle}"
+                                       HorizontalAlignment="Left"
+                                       Margin="0,10,0,0"/>
+                            <Border Background="{StaticResource DarkBrush}" 
+                                    CornerRadius="8" 
+                                    Padding="10,10" 
+                                    BorderBrush="{StaticResource SecondaryBrush}"
+                                    BorderThickness="1"
+                                    HorizontalAlignment="Right"
+                                    Margin="350,0,0,0">
+                                <StackPanel Orientation="Horizontal">
+                                  <Ellipse x:Name="StatusIndicator"
+                                    Width="12" Height="12" 
+                                    Fill="{StaticResource PrimaryBrush}" 
+                                    Margin="0,0,12,0"/>
+                                  <TextBlock x:Name="StatusText" 
+                                    Text="Port bağlantısı kapalı"
+                                    FontSize="14"
+                                    Foreground="{StaticResource SecondaryBrush}"/>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
+                        
                         
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
+                            
                             
                             <!-- Port Selection -->
                             <StackPanel Grid.Column="0" Margin="0,0,8,0">
@@ -207,37 +209,6 @@
                     </StackPanel>
                 </Border>
                 
-                <!-- Connection Status Card -->
-                <Border Style="{StaticResource SettingCardStyle}"
-                        Translation="0,0,8">
-                    <StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                            <FontIcon Glyph="&#xE703;" 
-                                      Foreground="{StaticResource SuccessBrush}"
-                                      Style="{StaticResource StatusIconStyle}"/>
-                            <TextBlock Text="Bağlantı Durumu" 
-                                       Style="{StaticResource SettingTitleStyle}"/>
-                        </StackPanel>
-                        
-                        <Border Background="{StaticResource DarkBrush}" 
-                                CornerRadius="8" 
-                                Padding="16,12" 
-                                BorderBrush="{StaticResource SecondaryBrush}"
-                                BorderThickness="1">
-                            <StackPanel Orientation="Horizontal">
-                                <Ellipse x:Name="StatusIndicator"
-                                         Width="12" Height="12" 
-                                         Fill="{StaticResource PrimaryBrush}" 
-                                         Margin="0,0,12,0"/>
-                                <TextBlock x:Name="StatusText" 
-                                           Text="Port bağlantısı kapalı"
-                                           FontSize="14"
-                                           Foreground="{StaticResource SecondaryBrush}"/>
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
-                </Border>
-                
                 <!-- Data Settings Card -->
                 <Border Style="{StaticResource SettingCardStyle}"
                         Translation="0,0,8">
@@ -257,7 +228,7 @@
                             </Grid.ColumnDefinitions>
                             
                             <!-- Data Bits -->
-                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                            <StackPanel Grid.Column="0" Margin="0,0,10,0">
                                 <TextBlock Text="Data Bits" 
                                            Style="{StaticResource SettingLabelStyle}"/>
                                 <ComboBox Style="{StaticResource SettingComboBoxStyle}"
