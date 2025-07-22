@@ -1,11 +1,13 @@
-using System;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
-using Microsoft.UI.Dispatching;
 using copilot_deneme.ViewModels;
-using Microsoft.Web.WebView2.Core;
+using HelixToolkit.SharpDX.Core;
+using Microsoft.UI.Dispatching;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Media3D;
+using Microsoft.UI.Xaml.Navigation;
+using System;
 using System.Globalization;
+using System.Threading.Tasks;
+
 
 namespace copilot_deneme
 {
@@ -37,13 +39,44 @@ namespace copilot_deneme
             // SerialPortService'den telemetri veri güncellemelerini dinle
             SerialPortService.OnTelemetryDataUpdated += OnTelemetryDataUpdated;
             SerialPortService.OnDataReceived += OnSerialDataReceived;
-            
+            SerialPortService.OnRotationDataReceived += OnRotationDataReceived;
+
             InitializeDisplay();
-            
-            // GPS haritasýný baþlat
+            InitializeThreeDWebView();
+       
             InitializeGpsMap();
         }
+        private async void InitializeThreeDWebView()
+        {
+            await ThreeDWebView.EnsureCoreWebView2Async();
+            string assetPath = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "assets");
+            ThreeDWebView.CoreWebView2.SetVirtualHostNameToFolderMapping(
+                "assets.local", assetPath, Microsoft.Web.WebView2.Core.CoreWebView2HostResourceAccessKind.Allow);
+            ThreeDWebView.NavigateToString(HtmlTemplate);
+        }
 
+        private void OnRotationDataReceived(float yaw, float pitch, float roll)
+        {
+            // Gelen verinin UI thread'inde iþlendiðinden emin ol
+            _dispatcherQueue.TryEnqueue(async () =>
+            {
+                // 3D modeli güncellemek için mevcut metodunuzu çaðýrýn
+                await UpdateRotationAsync(yaw, pitch, roll);
+            });
+        }
+
+        // Telemetri verisi geldikçe bu metodu çaðýrýn:
+        public async Task UpdateRotationAsync(float yaw, float pitch, float roll)
+        {
+            if (ThreeDWebView.CoreWebView2 == null)
+                return;
+
+            // JS fonksiyonunu çaðýr
+            string script = $"updateModelRotation({yaw.ToString(CultureInfo.InvariantCulture)}, " +
+                                           $"{pitch.ToString(CultureInfo.InvariantCulture)}, " +
+                                           $"{roll.ToString(CultureInfo.InvariantCulture)});";
+            await ThreeDWebView.ExecuteScriptAsync(script);
+        }
         private async void InitializeGpsMap()
         {
             try
@@ -393,6 +426,97 @@ namespace copilot_deneme
                 System.Diagnostics.Debug.WriteLine($"sitPage GPS pozisyon güncelleme hatasý: {ex.Message}");
             }
         }
+        private const string HtmlTemplate = @"
+<!DOCTYPE html>
+<html lang=""en"">
+<head>
+  <meta charset=""UTF-8"" />
+  <title>3D Scene with STL</title>
+  <style>
+    body, html { margin: 0; padding: 0; overflow: hidden; background-color: #1e1e1e; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <script src=""https://cdn.jsdelivr.net/npm/three@0.142.0/build/three.min.js""></script>
+  <script src=""https://cdn.jsdelivr.net/npm/three@0.142.0/examples/js/loaders/STLLoader.js""></script>
+  
+  <script>
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+    dirLight.position.set(5, 10, 7.5);
+    scene.add(ambientLight, dirLight);
+
+    camera.position.set(5, 5, 5);
+camera.lookAt(0, 0, 0);
+camera.up.set(0, 1, 0)
+
+
+    let model;
+    const loader = new THREE.STLLoader();
+
+   loader.load(
+    'https://assets.local/rocket_model.stl',
+    function (geometry) {
+        geometry.computeBoundingBox();
+        const center = new THREE.Vector3();
+        geometry.boundingBox.getCenter(center).negate();
+        geometry.translate(center.x, center.y, center.z);
+
+        const material = new THREE.MeshStandardMaterial({
+            color: 0x0077ff,
+            metalness: 0.3,
+            roughness: 0.5,
+            side: THREE.DoubleSide
+        });
+        const mesh = new THREE.Mesh(geometry, material);
+
+        // Otomatik scale (çok büyük/küçük model varsa normalize et)
+        geometry.computeBoundingBox();
+        const size = geometry.boundingBox.getSize(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const scale = 5.0 / maxDim;
+        mesh.scale.set(scale, scale, scale);
+
+       
+        scene.add(mesh);
+        model = mesh;
+
+        console.log('STL model yüklendi ve ortalandý.');
+    },
+    function (xhr) { console.log((xhr.loaded / xhr.total * 100) + '% loaded'); },
+    function (error) { console.error('STL yüklenirken hata:', error); }
+);
+
+
+    function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    window.updateModelRotation = (yaw, pitch, roll) => {
+        if (model) {
+            model.rotation.y = yaw * Math.PI / 180;
+            model.rotation.x = pitch * Math.PI / 180;
+            model.rotation.z = roll * Math.PI / 180;
+        }
+    };
+
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>";
 
         private void InitializeDisplay()
         {
@@ -473,6 +597,8 @@ namespace copilot_deneme
                 }
             });
         }
+
+      
 
         private void SendDataToCharts(TelemetryUpdateData telemetryData)
         {

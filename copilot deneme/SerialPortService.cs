@@ -29,6 +29,9 @@ namespace copilot_deneme
         // sitPage için telemetri veri eventi
         public static event Action<TelemetryUpdateData> OnTelemetryDataUpdated;
 
+        // 3D Model yönelim verisi için yeni event handler 
+        public static event Action<float, float, float>? OnRotationDataReceived;
+
         public static void Initialize(string portName, int baudRate)
         {
             System.Diagnostics.Debug.WriteLine($"Initializing SerialPort with port:{portName}, baudRate:{baudRate}");
@@ -129,7 +132,13 @@ namespace copilot_deneme
             try
             {
                 System.Diagnostics.Debug.WriteLine($"Processing line: '{data}'");
-                
+
+                if (data.StartsWith("YPR,")) // <--- YENÝ
+                {
+                    ProcessRotationData(data); // <--- YENÝ
+                    return; // Bu veri iþlendi, diðer kontrollere gerek yok. // <--- YENÝ
+                }
+
                 // Önce key:value formatýný kontrol et
                 if (data.Contains(':'))
                 {
@@ -185,8 +194,32 @@ namespace copilot_deneme
             }
         }
 
-       
-        
+        // 3D model için YPR verisini iþleyen yeni metod // <--- YENÝ
+        private static void ProcessRotationData(string data)
+        {
+            try
+            {
+                // "YPR," etiketini kaldýrýp kalan kýsmý virgüllerden ayýr
+                string[] values = data.Substring(4).Split(',');
+
+                if (values.Length == 3)
+                {
+                    var culture = CultureInfo.InvariantCulture;
+                    float yaw = TryParseFloat(values[0], culture, 0);
+                    float pitch = TryParseFloat(values[1], culture, 0);
+                    float roll = TryParseFloat(values[2], culture, 0);
+
+                    // Yeni event'i tetikle
+                    OnRotationDataReceived?.Invoke(yaw, pitch, roll);
+                    System.Diagnostics.Debug.WriteLine($"Rotation Data Parsed - Yaw: {yaw}, Pitch: {pitch}, Roll: {roll}");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error parsing rotation data: {ex.Message}");
+            }
+        }
+
 
         private static void NotifySitPage(float roketIrtifa, float roketGpsIrtifa, float roketGpsEnlem, float roketGpsBoylam,
                                          float payloadIrtifa, float payloadGpsEnlem, float payloadGpsBoylam,

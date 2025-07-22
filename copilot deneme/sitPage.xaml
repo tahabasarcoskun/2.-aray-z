@@ -6,6 +6,7 @@
     xmlns:local="using:copilot_deneme"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:hx="using:HelixToolkit.WinUI"
     mc:Ignorable="d"
     UseLayoutRounding="True">
 
@@ -80,36 +81,81 @@
 
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="2*"/>
-            <RowDefinition Height="1*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-      
-
-        <!-- GPS Harita - Ana Alan -->
-        <Border Grid.Row="1" 
-                Style="{StaticResource MapCardStyle}"
-                Margin="16,8,16,8">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                
-                <!-- Harita Başlığı -->
-                <StackPanel Grid.Row="0" 
-                           Orientation="Horizontal" 
-                           HorizontalAlignment="Center" 
-                           Margin="0,12,0,0">
-                    
-                </StackPanel>
-                
-                <!-- Harita WebView -->
-                <WebView2 Grid.Row="1" 
-                         x:Name="MapWebView" 
-                         Margin="8,0,8,8"/>
-            </Grid>
+        <!-- Header -->
+        <Border Grid.Row="0" 
+        Style="{StaticResource DataCardStyle}"
+        Margin="16,16,16,8"
+        Translation="0,0,8">
+            <StackPanel Orientation="Horizontal" 
+                HorizontalAlignment="Center" 
+                Margin="16,12">
+                <FontIcon Glyph="&#xE81D;" 
+                  Foreground="{StaticResource AccentBrush}" 
+                  FontSize="24" 
+                  Margin="0,0,12,0"/>
+                <TextBlock Text="Roket Telemetri Verileri ve GPS Haritası - Gerçek Zamanlı"
+                   FontSize="20"
+                   FontWeight="Bold"
+                   Foreground="White"/>
+                <Ellipse Width="12" Height="12" 
+                 Fill="{StaticResource SuccessBrush}" 
+                 Margin="12,0,0,0"/>
+            </StackPanel>
         </Border>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- GPS Harita - Ana Alan -->
+            <Border Grid.Column="0"
+        Style="{StaticResource MapCardStyle}"
+        Margin="16,8,16,8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <!-- Harita WebView -->
+                    <WebView2 Grid.Row="1" x:Name="MapWebView"  Margin="8,0,8,8"/>
+                    <!-- Harita Başlığı -->
+                    <StackPanel Grid.Row="0" 
+                   Orientation="Horizontal" 
+                   HorizontalAlignment="Center" 
+                   Margin="0,12,0,8">
+                        <FontIcon Glyph="&#xE909;" 
+                      Foreground="{StaticResource AccentBrush}" 
+                      FontSize="20" 
+                      Margin="0,0,8,0"/>
+                        <TextBlock Text="Gerçek Zamanlı GPS Takip Haritası"
+                       Style="{StaticResource SectionTitleStyle}"
+                       FontSize="18"
+                       Margin="0"/>
+                        <FontIcon Glyph="&#xE946;" 
+                      Foreground="{StaticResource SuccessBrush}" 
+                      FontSize="16" 
+                      Margin="8,0,0,0"/>
+                    </StackPanel>
+
+
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="1" Style="{StaticResource MapCardStyle}" Margin="8,8,16,8">
+                <Grid>
+                    <WebView2 x:Name="ThreeDWebView"
+              HorizontalAlignment="Stretch"
+              VerticalAlignment="Stretch"/>
+
+                </Grid>
+
+            </Border>
+        </Grid>
 
         <!-- Telemetri Veri Panelleri -->
         <ScrollViewer Grid.Row="2" 

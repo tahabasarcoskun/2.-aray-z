@@ -5,6 +5,7 @@
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>copilot_deneme</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+	  <ApplicationIcon>Assets\saturn_tam.ico</ApplicationIcon>
     <Platforms>x86;x64;ARM64</Platforms>
     <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
     <PublishProfile>win-$(Platform).pubxml</PublishProfile>
@@ -23,8 +24,7 @@
     <None Remove="HYI.xaml" />
     <None Remove="SettingPage.xaml" />
     <None Remove="sitPage.xaml" />
-    <None Remove="sutPage.xaml" />
-    <None Remove="TestPage.xaml" />
+    <None Remove="ViewModels\rocket_v1_L2.123c433550fa-0038-410c-a891-3367406a58a6\12216_rocket_v1_l2.obj" />
   </ItemGroup>
   <ItemGroup>
     <Page Remove="SplashScreen.xaml" />
@@ -38,8 +38,9 @@
     <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Content Include="Assets\StoreLogo.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
-    <Content Include="Assets\IMG-20241205-WA0001(1).jpg" />
-    <Content Include="Assets\teamlogo.png" />
+    <Content Include="ViewModels\rocket_v1_L2.123c433550fa-0038-410c-a891-3367406a58a6\12216_rocket_v1_l2.obj">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -57,6 +58,8 @@
   <ItemGroup>
     <PackageReference Include="CSharpMarkup.WinUI" Version="3.1.0" />
     <PackageReference Include="CSharpMarkup.WinUI.LiveChartsCore.SkiaSharpView" Version="3.1.0" />
+    <PackageReference Include="HelixToolkit" Version="2.27.0" />
+    <PackageReference Include="HelixToolkit.WinUI" Version="2.27.0" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3351.48" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.4188" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250513003" />
@@ -70,6 +73,21 @@
     <None Update="SplashScreen.xaml">
       <Generator>MSBuild:Compile</Generator>
     </None>
+    <Content Update="Assets\12216_rocket_v1_l2.obj">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="Assets\OBJLoader.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="Assets\rocket_model.STL">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="Assets\saturn_tam.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="Assets\teamlogo.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Page Update="HYI.xaml">
@@ -82,17 +100,7 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Page Update="sutPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
     <Page Update="sitPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Update="TestPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
@@ -122,5 +130,11 @@
     <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
     <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
     <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
+    <ApplicationIcon>Assets\saturn_tam.ico</ApplicationIcon>
   </PropertyGroup>
+	<ItemGroup>
+		<Content Include="Assets\rocket_model.STL">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
 </Project>
