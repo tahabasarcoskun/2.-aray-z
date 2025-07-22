@@ -43,16 +43,10 @@
                         <!-- Team Logo -->
                         <Border Width="32" Height="32" 
                                 CornerRadius="16" 
-                                Background="White"
+                                Background="{StaticResource TitleBarLogoBrush}"
                                 BorderBrush="#FFD93D"
                                 BorderThickness="2"
                                 Margin="0,0,12,0">
-                            <Border CornerRadius="14">
-                                <Border.Background>
-                                    <ImageBrush ImageSource="Assets/teamlogo.png" 
-                                               Stretch="UniformToFill"/>
-                                </Border.Background>
-                            </Border>
                         </Border>
                         
                         <!-- Uygulama Başlığı -->
@@ -95,15 +89,8 @@
                     <StackPanel Orientation="Vertical" Margin="16" HorizontalAlignment="Center">
                         <Border Width="100" Height="100" CornerRadius="50"
                                 BorderBrush="#FFD93D" BorderThickness="3"
-                                Background="White"
+                                Background="{StaticResource TeamLogoBrush}"
                                 Translation="0,0,4">
-                            <Border CornerRadius="47"
-                                    Margin="3">
-                                <Border.Background>
-                                    <ImageBrush ImageSource="Assets/teamlogo.png" 
-                                               Stretch="UniformToFill"/>
-                                </Border.Background>
-                            </Border>
                         </Border>
                         <TextBlock Text="ROKET TELEMETRİ SİSTEMİ" 
                                    FontSize="13" 
@@ -167,11 +154,8 @@
                     <Border.RenderTransform>
                         <CompositeTransform/>
                     </Border.RenderTransform>
-                    <Border CornerRadius="96" Margin="4">
-                        <Border.Background>
-                            <ImageBrush ImageSource="Assets/teamlogo.png" 
-                                       Stretch="UniformToFill"/>
-                        </Border.Background>
+                    <Border CornerRadius="96" Margin="4"
+                            Background="{StaticResource TeamLogoBrush}">
                     </Border>
                 </Border>
                 

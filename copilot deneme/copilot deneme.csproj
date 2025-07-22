@@ -38,6 +38,8 @@
     <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Content Include="Assets\StoreLogo.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
+    <Content Include="Assets\IMG-20241205-WA0001(1).jpg" />
+    <Content Include="Assets\teamlogo.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -63,11 +65,6 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Assets\line-chart-128.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Update="Assets\teamlogo.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <None Update="SplashScreen.xaml">

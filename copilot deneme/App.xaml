@@ -9,6 +9,11 @@
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
             </ResourceDictionary.MergedDictionaries>
+            
+            <!-- Image Resources -->
+            <BitmapImage x:Key="TitleBarLogoImage" UriSource="ms-appx:///Assets/IMG-20241205-WA0001(1).jpg"/>
+            <BitmapImage x:Key="TeamLogoImage" UriSource="ms-appx:///Assets/teamlogo.png"/>
+            
             <!-- App.xaml'de özel renk paleti tanımlayın -->
             <SolidColorBrush x:Key="PrimaryBrush" Color="#FF6B73"/>
             <SolidColorBrush x:Key="SecondaryBrush" Color="#C7CEEA"/>
@@ -16,6 +21,11 @@
             <SolidColorBrush x:Key="DarkBrush" Color="#1A1A2E"/>
             <SolidColorBrush x:Key="CardBrush" Color="#16213E"/>
             <SolidColorBrush x:Key="SuccessBrush" Color="#06FFA5"/>
+            
+            <!-- ImageBrush Resources -->
+            <ImageBrush x:Key="TitleBarLogoBrush" ImageSource="ms-appx:///Assets/IMG-20241205-WA0001(1).jpg" Stretch="UniformToFill"/>
+            <ImageBrush x:Key="TeamLogoBrush" ImageSource="ms-appx:///Assets/teamlogo.png" Stretch="UniformToFill"/>
+            
             <!-- Shared Styles -->
             <Style x:Key="SettingCardStyle" TargetType="Border">
                 <Setter Property="Background" Value="{StaticResource CardBrush}"/>

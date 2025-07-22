@@ -46,11 +46,39 @@ namespace copilot_deneme
         {
             this.InitializeComponent();
             
+            // Activated event'ini dinle (ilk kez window aktif olduðunda)
+            this.Activated += MainWindow_Activated;
+            
             // Custom title bar ayarlarý
             SetupCustomTitleBar();
             
             // Splash screen'i baþlat
             StartSplashScreen();
+        }
+
+        private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
+        {
+            // Sadece ilk aktivasyon için kontrol et
+            if (args.WindowActivationState != WindowActivationState.Deactivated)
+            {
+                // App resource'larýndaki görsellerin yüklenip yüklenmediðini kontrol et
+                try
+                {
+                    var titleBarLogoResource = Application.Current.Resources["TitleBarLogoImage"];
+                    var teamLogoResource = Application.Current.Resources["TeamLogoImage"];
+                    var titleBarBrushResource = Application.Current.Resources["TitleBarLogoBrush"];
+                    var teamBrushResource = Application.Current.Resources["TeamLogoBrush"];
+                    
+                    System.Diagnostics.Debug.WriteLine($"??? TitleBarLogoImage resource: {(titleBarLogoResource != null ? "? Yüklendi" : "? Bulunamadý")}" );
+                    System.Diagnostics.Debug.WriteLine($"??? TeamLogoImage resource: {(teamLogoResource != null ? "? Yüklendi" : "? Bulunamadý")}");
+                    System.Diagnostics.Debug.WriteLine($"?? TitleBarLogoBrush resource: {(titleBarBrushResource != null ? "? Yüklendi" : "? Bulunamadý")}");
+                    System.Diagnostics.Debug.WriteLine($"?? TeamLogoBrush resource: {(teamBrushResource != null ? "? Yüklendi" : "? Bulunamadý")}");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"? Resource kontrol hatasý: {ex.Message}");
+                }
+            }
         }
 
         private void StartSplashScreen()
@@ -134,7 +162,19 @@ namespace copilot_deneme
             
             fadeInStoryboard.Completed += (s, e) =>
             {
-                System.Diagnostics.Debug.WriteLine("? Ana içerik fade in animasyonu tamamlandý");
+                // Ana içerik görünür olduktan sonra UI'yi yenile
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    // NavigationView'ý force refresh et
+                    NavigationView.InvalidateArrange();
+                    NavigationView.InvalidateMeasure();
+                    
+                    // AppTitleBar'ý force refresh et
+                    AppTitleBar.InvalidateArrange();
+                    AppTitleBar.InvalidateMeasure();
+                    
+                    System.Diagnostics.Debug.WriteLine("? Ana içerik fade in animasyonu tamamlandý - UI yenilendi");
+                });
             };
             
             fadeInStoryboard.Begin();
