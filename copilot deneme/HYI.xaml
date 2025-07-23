@@ -230,7 +230,7 @@
                     </StackPanel>
                 <StackPanel Grid.Column="2" Margin="15">
                     <TextBlock Text="Jiroskop Z:" Style="{ThemeResource SettingLabelStyle}"/>
-                    <TextBlock x:Name="gyroZ" Text="0" Style="{ThemeResource DataValueStyle}"/>
+                    <TextBlock x:Name="gyroZ"  Style="{ThemeResource DataValueStyle}"/>
 
                     <TextBlock Text="İvme X:" Style="{ThemeResource SettingLabelStyle}"/>
                     <TextBlock x:Name="accelX" Style="{ThemeResource DataValueStyle}"/>

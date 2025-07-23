@@ -6,16 +6,14 @@ using Microsoft.UI.Xaml.Media;
 using System;
 using System.IO.Ports;
 using System.Linq;
-using Windows.UI;
 
 namespace copilot_deneme
 {
     public sealed partial class HYI : Page
     {
-        private DispatcherQueue _dispatcherQueue;
-        private SerialPortServiceHYI _inputPortManager;
-        private SerialPortServiceHYI _outputPortManager;
-        private ushort _packetCounter = 0;
+        private readonly DispatcherQueue _dispatcherQueue;
+        private readonly SerialPortServiceHYI _inputPortManager;
+        private readonly SerialPortServiceHYI _outputPortManager;
 
         public HYI()
         {

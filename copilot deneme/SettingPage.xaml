@@ -39,7 +39,7 @@
         </Style>
         
         <Style x:Key="SettingComboBoxStyle" TargetType="ComboBox">
-            <Setter Property="Width" Value="300"/>
+            <Setter Property="Width" Value="200"/>
             <Setter Property="Margin" Value="0,0,0,16"/>
             <Setter Property="Background" Value="{StaticResource DarkBrush}"/>
             <Setter Property="Foreground" Value="White"/>
@@ -88,8 +88,7 @@
                 
                 <!-- Serial Port Settings Card -->
                 <Border Style="{StaticResource SettingCardStyle}"
-                        Translation="0,0,8"
-                        >
+                        Translation="0,0,8">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
                             <FontIcon Glyph="&#xE8F1;" 
@@ -100,29 +99,13 @@
                                        Style="{StaticResource SettingTitleStyle}"
                                        HorizontalAlignment="Left"
                                        Margin="0,10,0,0"/>
-                            <Border Background="{StaticResource DarkBrush}" 
-                                    CornerRadius="8" 
-                                    Padding="10,10" 
-                                    BorderBrush="{StaticResource SecondaryBrush}"
-                                    BorderThickness="1"
-                                    HorizontalAlignment="Right"
-                                    Margin="350,0,0,0">
-                                <StackPanel Orientation="Horizontal">
-                                  <Ellipse x:Name="StatusIndicator"
-                                    Width="12" Height="12" 
-                                    Fill="{StaticResource PrimaryBrush}" 
-                                    Margin="0,0,12,0"/>
-                                  <TextBlock x:Name="StatusText" 
-                                    Text="Port bağlantısı kapalı"
-                                    FontSize="14"
-                                    Foreground="{StaticResource SecondaryBrush}"/>
-                                </StackPanel>
-                            </Border>
+                           
                         </StackPanel>
                         
                         
                         <Grid>
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
@@ -152,6 +135,27 @@
                                     <ComboBoxItem Content="115200"/>
                                 </ComboBox>
                             </StackPanel>
+                            <!-- Status Indicator -->
+                            <Border Background="{StaticResource DarkBrush}" 
+       CornerRadius="8" 
+       Padding="10,8" 
+       BorderBrush="{StaticResource SecondaryBrush}"
+       BorderThickness="1"
+       Grid.Column="2"
+       HorizontalAlignment="Center"
+       VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <Ellipse x:Name="StatusIndicator" 
+               Width="12" Height="12" 
+               Fill="{StaticResource PrimaryBrush}" 
+               Margin="0,0,12,0"/>
+                                    <TextBlock x:Name="StatusText" 
+                 Text="Port bağlantısı kapalı"
+                 FontSize="14"
+                 Foreground="{StaticResource SecondaryBrush}"/>
+                                </StackPanel>
+                            </Border>
+
                         </Grid>
                         
                         <!-- Buttons -->

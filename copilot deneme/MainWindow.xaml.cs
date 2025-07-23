@@ -1,19 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Media.Animation;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Microsoft.UI.Windowing;
 using Microsoft.UI;
 using WinRT.Interop;
@@ -28,7 +18,7 @@ namespace copilot_deneme
     /// </summary>
     public sealed partial class MainWindow : Window
     {
-        private Type _currentPageType; // Mevcut sayfa türünü takip etmek için
+        private Type? _currentPageType; // Mevcut sayfa türünü takip etmek için
         private int _currentPageIndex = 0; // Mevcut sayfa indeksini takip etmek için
         private DispatcherTimer? _splashTimer; // Splash screen timer'ý
 

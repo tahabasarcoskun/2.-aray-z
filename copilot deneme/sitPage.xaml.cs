@@ -1,8 +1,6 @@
 using copilot_deneme.ViewModels;
-using HelixToolkit.SharpDX.Core;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media.Media3D;
 using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Globalization;
@@ -21,8 +19,9 @@ namespace copilot_deneme
         
         // Ýstatistik deðiþkenleri
         private float _maxAltitude = 0;
-        private float _maxAcceleration = 0;
-        private int _dataCount = 0;
+        private int _Counter = 0;
+        private int _CRC = 0;
+        private int _TeamID = 0;
 
         // GPS Harita deðiþkenleri
         private bool _isMapInitialized = false;
@@ -524,7 +523,9 @@ camera.up.set(0, 1, 0)
             LastUpdateText.Text = "Baðlantý bekleniyor...";
             DataCountText.Text = "0";
             MaxAltitudeText.Text = "0.00 m";
-            MaxAccelText.Text = "0.00 m/s²";
+            CRCText.Text = "0";
+            TeamIDText.Text = "0";
+            
         }
 
         private void OnSerialDataReceived(string data)
@@ -583,10 +584,9 @@ camera.up.set(0, 1, 0)
 
                     // Son güncelleme zamaný
                     LastUpdateText.Text = $"{DateTime.Now:HH:mm:ss}";
-                    
-                    // Veri sayýsý
-                    _dataCount++;
-                    DataCountText.Text = _dataCount.ToString();
+
+                    _Counter = (_Counter + 1) % 256;
+                    DataCountText.Text = _Counter.ToString();
 
                     System.Diagnostics.Debug.WriteLine($"sitPage telemetri ve GPS güncellendi - Roket Ýrtifa: {telemetryData.RocketAltitude:F2}m, Payload Ýrtifa: {telemetryData.PayloadAltitude:F2}m");
                 }
@@ -646,13 +646,18 @@ camera.up.set(0, 1, 0)
                     MaxAltitudeText.Text = $"{_maxAltitude:F2} m";
                 }
 
-                // Maksimum ivme hesapla
-                float currentMaxAccel = Math.Max(Math.Abs(telemetryData.AccelX), 
-                                               Math.Max(Math.Abs(telemetryData.AccelY), Math.Abs(telemetryData.AccelZ)));
-                if (currentMaxAccel > _maxAcceleration)
+
+                if (telemetryData.CRC >= 0) // TelemetryUpdateData sýnýfýna CRC eklenmelidir
                 {
-                    _maxAcceleration = currentMaxAccel;
-                    MaxAccelText.Text = $"{_maxAcceleration:F2} m/s²";
+                    _CRC = telemetryData.CRC;
+                    CRCText.Text = _CRC.ToString();
+                }
+
+                // Team ID deðerini güncelle
+                if (telemetryData.TeamID > 0) // TelemetryUpdateData sýnýfýna TeamID eklenmelidir
+                {
+                    _TeamID = telemetryData.TeamID;
+                    TeamIDText.Text = _TeamID.ToString();
                 }
             }
             catch (Exception ex)

@@ -7,7 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:lvc="using:LiveChartsCore.SkiaSharpView.WinUI"
     mc:Ignorable="d"
-    Title="🚀 Roket Telemetri Sistemi - Takım Telemetri İstasyonu">
+    Title="Saturn Yer İstasyonu">
     
     <Grid>
         <!-- Gradient arka plan -->
@@ -41,17 +41,22 @@
                                VerticalAlignment="Center" 
                                Margin="16,0,0,0">
                         <!-- Team Logo -->
-                        <Border Width="32" Height="32" 
+                        <Border Width="35" Height="35" 
                                 CornerRadius="16" 
                                 Background="{StaticResource TitleBarLogoBrush}"
                                 BorderBrush="#FFD93D"
                                 BorderThickness="2"
-                                Margin="0,0,12,0">
+                                Margin="0,0,12,0"
+                                >
+                            <Image Source="/Assets/IMG-20241205-WA0001(1).jpg" 
+                                   Stretch="UniformToFill" 
+                                   Width="30" 
+                                   Height="30"/>
                         </Border>
                         
                         <!-- Uygulama Başlığı -->
                         <StackPanel VerticalAlignment="Center">
-                            <TextBlock Text="Roket Telemetri Sistemi" 
+                            <TextBlock Text="Saturn Yer İstasyonu" 
                                        Foreground="White" 
                                        FontSize="16" 
                                        FontWeight="Bold"/>
@@ -120,12 +125,12 @@
                     </NavigationViewItem>
                     <NavigationViewItem Content="Roket Telemetri" Tag="test">
                         <NavigationViewItem.Icon>
-                            <FontIcon Glyph="&#xE7C0;" Foreground="#FF6B73"/>
+                            <ImageIcon Source="/Assets/rocket-128.png"/>
                         </NavigationViewItem.Icon>
                     </NavigationViewItem>
                     <NavigationViewItem Content="HYİ Testi" Tag="HYİ">
                         <NavigationViewItem.Icon>
-                            <FontIcon Glyph="&#xE9F9;" Foreground="#FFA726"/>
+                            <ImageIcon Source="/Assets/notebook-128.png"/>
                         </NavigationViewItem.Icon>
                     </NavigationViewItem>
                 </NavigationView.MenuItems>

@@ -3,31 +3,29 @@ using Microsoft.UI.Dispatching;
 using System;
 using System.Globalization;
 using System.IO.Ports;
-using System.Threading;
-using System.Windows;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+
 
 namespace copilot_deneme
 {
     public static class SerialPortService
     {
-        private static SerialPort _serialPort;
+        private static SerialPort? _serialPort;
         private static string _buffer = string.Empty;
         
-        public static SerialPort SerialPort             
+        public static SerialPort? SerialPort             
         {
             get => _serialPort;
             set => _serialPort = value;
         }
 
-        public static ChartViewModel ViewModel { get; set; }
-        public static DispatcherQueue Dispatcher { get; set; }
+        public static ChartViewModel? ViewModel { get; set; }
+        public static DispatcherQueue? Dispatcher { get; set; }
         
         // Yeni event handler - ham veri için
-        public static event Action<string> OnDataReceived;
+        public static event Action<string>? OnDataReceived;
         
         // sitPage için telemetri veri eventi
-        public static event Action<TelemetryUpdateData> OnTelemetryDataUpdated;
+        public static event Action<TelemetryUpdateData>? OnTelemetryDataUpdated;
 
         // 3D Model yönelim verisi için yeni event handler 
         public static event Action<float, float, float>? OnRotationDataReceived;
@@ -562,6 +560,11 @@ namespace copilot_deneme
         public float RocketPressure { get; set; }
         public float PayloadPressure { get; set; }
         public float PayloadHumidity { get; set; }
+        public byte CRC { get; set; }
+        public byte TeamID { get; set; }
+        public byte status { get; set; } 
+        public byte PacketCounter { get; set; } // Yeni: Paket sayacý
+
     }
 
     

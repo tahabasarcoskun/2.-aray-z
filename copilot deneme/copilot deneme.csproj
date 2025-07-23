@@ -4,8 +4,6 @@
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>copilot_deneme</RootNamespace>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
-	  <ApplicationIcon>Assets\saturn_tam.ico</ApplicationIcon>
     <Platforms>x86;x64;ARM64</Platforms>
     <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
     <PublishProfile>win-$(Platform).pubxml</PublishProfile>
@@ -24,23 +22,14 @@
     <None Remove="HYI.xaml" />
     <None Remove="SettingPage.xaml" />
     <None Remove="sitPage.xaml" />
-    <None Remove="ViewModels\rocket_v1_L2.123c433550fa-0038-410c-a891-3367406a58a6\12216_rocket_v1_l2.obj" />
   </ItemGroup>
   <ItemGroup>
     <Page Remove="SplashScreen.xaml" />
   </ItemGroup>
 	
   <ItemGroup>
-    <Content Include="Assets\SplashScreen.scale-200.png" />
-    <Content Include="Assets\LockScreenLogo.scale-200.png" />
-    <Content Include="Assets\Square150x150Logo.scale-200.png" />
-    <Content Include="Assets\Square44x44Logo.scale-200.png" />
-    <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
-    <Content Include="Assets\StoreLogo.png" />
-    <Content Include="Assets\Wide310x150Logo.scale-200.png" />
-    <Content Include="ViewModels\rocket_v1_L2.123c433550fa-0038-410c-a891-3367406a58a6\12216_rocket_v1_l2.obj">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+	<Content Include="Assets\Saturn44x44Logo.targetsize-24_altform-unplated.png" />
+	  
   </ItemGroup>
 
   <ItemGroup>
@@ -73,9 +62,7 @@
     <None Update="SplashScreen.xaml">
       <Generator>MSBuild:Compile</Generator>
     </None>
-    <Content Update="Assets\12216_rocket_v1_l2.obj">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+   
     <Content Update="Assets\OBJLoader.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -123,14 +110,12 @@
   <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
     <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
   </PropertyGroup>
-
   <!-- Publish Properties -->
   <PropertyGroup>
     <PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>
     <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
     <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
     <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
-    <ApplicationIcon>Assets\saturn_tam.ico</ApplicationIcon>
   </PropertyGroup>
 	<ItemGroup>
 		<Content Include="Assets\rocket_model.STL">

@@ -6,7 +6,6 @@
     xmlns:local="using:copilot_deneme"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:hx="using:HelixToolkit.WinUI"
     mc:Ignorable="d"
     UseLayoutRounding="True">
 
@@ -413,10 +412,28 @@
 
                         <Grid>
                             <Grid.RowDefinitions>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Takım ID:" Style="{StaticResource DataLabelStyle}" FontSize="11"/>
+                            <TextBlock x:Name="TeamIDText" Grid.Row="1" Style="{StaticResource DataValueStyle}"/>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
-                            <TextBlock Text="Veri Sayısı:" Style="{StaticResource DataLabelStyle}"/>
+                            <TextBlock Text="CRC:" Style="{StaticResource DataLabelStyle}"/>
+                            <TextBlock x:Name="CRCText" Grid.Row="1" Text="0" Style="{StaticResource DataValueStyle}"/>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Sayaç:" Style="{StaticResource DataLabelStyle}"/>
                             <TextBlock x:Name="DataCountText" Grid.Row="1" Text="0" Style="{StaticResource DataValueStyle}"/>
                         </Grid>
 
@@ -429,17 +446,8 @@
                             <TextBlock x:Name="MaxAltitudeText" Grid.Row="1" Text="0.00 m" Style="{StaticResource DataValueStyle}"/>
                         </Grid>
 
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <TextBlock Text="Maks. İvme:" Style="{StaticResource DataLabelStyle}"/>
-                            <TextBlock x:Name="MaxAccelText" Grid.Row="1" Text="0.00 m/s²" Style="{StaticResource DataValueStyle}"/>
-                        </Grid>
-
                         <!-- GPS Durum İkonları -->
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,4,0,0">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="left" Margin="0,4,0,0">
                             <TextBlock Text="🔴" FontSize="12" Margin="0,0,4,0" ToolTipService.ToolTip="Roket Konumu"/>
                             <TextBlock Text="🟢" FontSize="12" Margin="0,0,4,0" ToolTipService.ToolTip="Payload Konumu"/>
                             <TextBlock Text="📍" FontSize="12" ToolTipService.ToolTip="Uçuş Rotası"/>
