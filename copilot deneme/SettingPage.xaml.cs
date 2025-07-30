@@ -1,9 +1,11 @@
-using System.IO.Ports;
-using copilot_deneme.ViewModels;
+ï»¿using copilot_deneme.ViewModels;
+using Microsoft.UI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using System;
+using System.IO.Ports;
 using System.Linq;
 using Windows.UI; // This is already present but Colors class needs to be accessed differently
 
@@ -13,7 +15,6 @@ namespace copilot_deneme
     {
         private ChartViewModel _viewModel;
         private DispatcherQueue _dispatcherQueue;
-        
         public SettingPage()
         {
             this.InitializeComponent();
@@ -21,186 +22,128 @@ namespace copilot_deneme
             
             var viewModel = new ChartViewModel();
             this.DataContext = viewModel;
-            _viewModel = viewModel; // Ayný instance'ý kullan
+            _viewModel = viewModel; // AynÄ± instance'Ä± kullan
             
             SerialPortService.ViewModel = _viewModel;
             SerialPortService.Dispatcher = _dispatcherQueue;
-            
-            // Ýlk yüklemede portlarý doldur
+
+
+            SerialPortService.OnHYIPacketReceived += OnHYIPacketReceived;
+            // Ä°lk yÃ¼klemede portlarÄ± doldur
             RefreshAvailablePorts();
-            BaudRateComboBox.SelectedIndex = 0; 
+            BaudRateComboBox_Input.SelectedIndex = 0;
+            BaudRateComboBox_Output.SelectedIndex = 0;
             
-            // Sayfa yüklendiðinde durumu güncelle
-            UpdateConnectionStatus();
+  
         }
 
         private void RefreshPorts_Click(object sender, RoutedEventArgs e)
         {
             RefreshAvailablePorts();
-            
-            // Kullanýcýya geri bildirim ver
-            _dispatcherQueue.TryEnqueue(() =>
-            {
-                StatusText.Text = "Portlar yenilendi";
-                StatusText.Foreground = new SolidColorBrush(Color.FromArgb(255, 144, 238, 144)); // LightGreen
-            });
-            
+           
             System.Diagnostics.Debug.WriteLine("Ports refreshed");
         }
-        
-        private void RefreshAvailablePorts()
+        private void OnHYIPacketReceived(SerialPortService.HYITelemetryData data)
         {
-            try
+            // HYI verisi alÄ±ndÄ±ÄŸÄ±nda log
+            _dispatcherQueue.TryEnqueue(() =>
             {
-                var availablePorts = SerialPort.GetPortNames();
-                var currentSelection = PortComboBox.SelectedItem as string;
-                
-                _dispatcherQueue.TryEnqueue(() =>
-                {
-                    PortComboBox.ItemsSource = availablePorts;
-                    
-                    // Eðer önceden seçili bir port varsa ve hala mevcutsa, onu tekrar seç
-                    if (!string.IsNullOrEmpty(currentSelection) && availablePorts.Contains(currentSelection))
-                    {
-                        PortComboBox.SelectedItem = currentSelection;
-                    }
-                    else if (availablePorts.Length > 0)
-                    {
-                        PortComboBox.SelectedIndex = 0; // Ýlk portu seç
-                    }
-                    
-                    // Port sayýsýný göster
-                    StatusText.Text = $"{availablePorts.Length} port bulundu";
-                    StatusText.Foreground = new SolidColorBrush(Color.FromArgb(255, 173, 216, 230)); // LightBlue
-                });
-                
-                System.Diagnostics.Debug.WriteLine($"Found {availablePorts.Length} ports: {string.Join(", ", availablePorts)}");
-            }
-            catch (System.Exception ex)
-            {
-                _dispatcherQueue.TryEnqueue(() =>
-                {
-                    StatusText.Text = $"Port tarama hatasý: {ex.Message}";
-                        StatusText.Foreground = new SolidColorBrush(Color.FromArgb(255, 255, 0, 0)); // Red
-                });
-                
-                System.Diagnostics.Debug.WriteLine($"Error refreshing ports: {ex.Message}");
-            }
+                System.Diagnostics.Debug.WriteLine($"SettingPage: HYI Data - Team: {data.TeamId}, Counter: {data.PacketCounter}");
+            });
         }
 
-        private void OpenPort_Click(object sender, RoutedEventArgs e)
+        private void RefreshAvailablePorts()
         {
-            var portName = PortComboBox.SelectedItem as string;
-            var baudRateItem = BaudRateComboBox.SelectedItem as ComboBoxItem;
-            var baudRate = int.Parse(baudRateItem?.Content.ToString() ?? "115200");
+            string[] availablePorts = SerialPort.GetPortNames();
+            var inputSelection = PortComboBox_Input.SelectedItem as string;
+            var outputSelection = PortComboBox_Output.SelectedItem as string;
 
-            if (string.IsNullOrEmpty(portName))
-            {
-                _dispatcherQueue.TryEnqueue(() =>
-                {
-                    StatusText.Text = "Lütfen bir port seçin";
-                    StatusText.Foreground = new SolidColorBrush(Color.FromArgb(255, 255, 165, 0)); // Orange
-                });
-                return;
-            }
+            PortComboBox_Input.ItemsSource = availablePorts;
+            PortComboBox_Output.ItemsSource = availablePorts;
 
+            if (availablePorts.Contains(inputSelection)) PortComboBox_Input.SelectedItem = inputSelection;
+            else if (availablePorts.Length > 0) PortComboBox_Input.SelectedIndex = 0;
+
+            if (availablePorts.Contains(outputSelection)) PortComboBox_Output.SelectedItem = outputSelection;
+            else if (availablePorts.Length > 1) PortComboBox_Output.SelectedIndex = 1;
+            else if (availablePorts.Length > 0) PortComboBox_Output.SelectedIndex = 0;
+
+            StatusText_Input.Text = $"{availablePorts.Length} port bulundu.";
+            StatusText_Output.Text = $"{availablePorts.Length} port bulundu.";
+        }
+
+        private void ConnectInputPort_Click(object sender, RoutedEventArgs e)
+        {
             try
             {
-                // Önce mevcut baðlantýyý kapat
-                if (SerialPortService.SerialPort != null && SerialPortService.SerialPort.IsOpen)
-                {
-                    SerialPortService.StopReading();
-                }
+                var portName = PortComboBox_Input.SelectedItem as string;
+                if (string.IsNullOrEmpty(portName)) throw new InvalidOperationException("GiriÅŸ iÃ§in bir port seÃ§in.");
+                var baudRate = int.Parse((BaudRateComboBox_Input.SelectedItem as ComboBoxItem).Content.ToString());
 
-                // Yeni port yapýlandýrmasý
+                // SerialPortService'i kullan
                 SerialPortService.Initialize(portName, baudRate);
                 SerialPortService.StartReading();
 
-                _dispatcherQueue.TryEnqueue(() =>
-                {
-                    StatusText.Text = $"Baðlandý: {portName} ({baudRate} baud)";
-                    StatusText.Foreground = new SolidColorBrush(Color.FromArgb(255, 144, 238, 144)); // LightGreen
-                    UpdateConnectionStatus();
-                });
-                
-                System.Diagnostics.Debug.WriteLine($"Port opened successfully: {portName} at {baudRate} baud");
+                StatusIndicator_Input.Fill = new SolidColorBrush(Colors.LightGreen);
+                StatusText_Input.Text = $"BaÄŸlandÄ±: {portName}";
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                _dispatcherQueue.TryEnqueue(() =>
-                {
-                    StatusText.Text = $"Baðlantý hatasý: {ex.Message}";
-                    StatusText.Foreground = new SolidColorBrush(Color.FromArgb(255, 255, 0, 0)); // Red
-                    UpdateConnectionStatus();
-                });
-                System.Diagnostics.Debug.WriteLine($"Error opening port: {ex.Message}");
+                StatusIndicator_Input.Fill = new SolidColorBrush(Colors.Red);
+                StatusText_Input.Text = $"Hata: {ex.Message}";
             }
         }
-        
-        private void ClosePort_Click(object sender, RoutedEventArgs e)
+
+        private void DisconnectInputPort_Click(object sender, RoutedEventArgs e)
+        {
+            SerialPortService.StopReading();
+            StatusIndicator_Input.Fill = new SolidColorBrush(Colors.Red);
+            StatusText_Input.Text = "GiriÅŸ Portu KapalÄ±";
+        }
+
+        private void ConnectOutputPort_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                SerialPortService.StopReading();
-                _dispatcherQueue.TryEnqueue(() =>
-                {
-                    StatusText.Text = "Baðlantý kapatýldý";
-                    StatusText.Foreground = new SolidColorBrush(Color.FromArgb(255, 255, 165, 0)); // Orange
-                    UpdateConnectionStatus();
-                });
-                
-                System.Diagnostics.Debug.WriteLine("Port closed successfully");
+                var portName = PortComboBox_Output.SelectedItem as string;
+                if (string.IsNullOrEmpty(portName))
+                    throw new InvalidOperationException("Ã‡Ä±kÄ±ÅŸ iÃ§in bir port seÃ§in.");
+
+                var baudRate = int.Parse((BaudRateComboBox_Output.SelectedItem as ComboBoxItem).Content.ToString());
+
+                SerialPortService.InitializeOutputPort(portName, baudRate);
+
+                StatusIndicator_Output.Fill = new SolidColorBrush(Colors.LightGreen);
+                StatusText_Output.Text = $"HYI Output Aktif: {portName} ({baudRate})";
+
+                System.Diagnostics.Debug.WriteLine($"Output port connected: {portName}");
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                _dispatcherQueue.TryEnqueue(() =>
-                {
-                    StatusText.Text = $"Kapatma hatasý: {ex.Message}";
-                    StatusText.Foreground = new SolidColorBrush(Color.FromArgb(255, 255, 0, 0)); // Red
-                });
-                System.Diagnostics.Debug.WriteLine($"Error closing port: {ex.Message}");
+                StatusIndicator_Output.Fill = new SolidColorBrush(Colors.Red);
+                StatusText_Output.Text = $"Output HatasÄ±: {ex.Message}";
             }
-        }
-        
-        private void UpdateConnectionStatus()
-        {
-            _dispatcherQueue.TryEnqueue(() =>
-            {
-                bool isConnected = SerialPortService.IsPortOpen();
-                
-                if (isConnected)
-                {
-                    StatusIndicator.Fill = new SolidColorBrush(Color.FromArgb(255, 144, 238, 144)); // LightGreen
-                    if (StatusText.Text == "Port baðlantýsý kapalý")
-                    {
-                        StatusText.Text = $"Baðlý: {SerialPortService.SerialPort?.PortName}";
-                        StatusText.Foreground = new SolidColorBrush(Color.FromArgb(255, 144, 238, 144)); // LightGreen
-                    }
-                }
-                else
-                {
-                    StatusIndicator.Fill = new SolidColorBrush(Color.FromArgb(255, 255, 0, 0)); // Red
-                    if (!StatusText.Text.Contains("hatasý") && !StatusText.Text.Contains("yenilendi"))
-                    {
-                        StatusText.Text = "Port baðlantýsý kapalý";
-                        StatusText.Foreground = new SolidColorBrush(Color.FromArgb(255, 128, 128, 128)); // Gray
-                    }
-                }
-            });
         }
 
-        protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+        private void DisconnectOutputPort_Click(object sender, RoutedEventArgs e)
         {
-            base.OnNavigatedTo(e);
-            // Sayfa her açýldýðýnda durum güncelle
-            UpdateConnectionStatus();
-            RefreshAvailablePorts();
+            try
+            {
+                SerialPortService.CloseOutputPort();
+                StatusIndicator_Output.Fill = new SolidColorBrush(Colors.Red);
+                StatusText_Output.Text = "Ã‡Ä±kÄ±ÅŸ Portu KapalÄ±";
+            }
+            catch (Exception ex)
+            {
+                StatusText_Output.Text = $"Kapatma HatasÄ±: {ex.Message}";
+            }
         }
 
         protected override void OnNavigatedFrom(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
         {
             base.OnNavigatedFrom(e);
             // Cleanup if needed
+            SerialPortService.OnHYIPacketReceived -= OnHYIPacketReceived;
         }
     }
 }
