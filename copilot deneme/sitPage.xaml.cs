@@ -15,8 +15,8 @@ namespace copilot_deneme
     public sealed partial class sitPage : Page
     {
         private readonly DispatcherQueue _dispatcherQueue;
-        private ChartViewModel _viewModel;
-        
+        private ChartViewModel _viewModel = new ChartViewModel();
+
         // Ýstatistik deðiþkenleri
         private float _maxAltitude = 0;
         private int _Counter = 0;
@@ -56,6 +56,7 @@ namespace copilot_deneme
 
         private void OnRotationDataReceived(float yaw, float pitch, float roll)
         {
+           
             // Gelen verinin UI thread'inde iþlendiðinden emin ol
             _dispatcherQueue.TryEnqueue(async () =>
             {
@@ -537,7 +538,7 @@ camera.up.set(0, 1, 0)
             });
         }
 
-        private void OnTelemetryDataUpdated(TelemetryUpdateData telemetryData)
+        private void OnTelemetryDataUpdated(SerialPortService.TelemetryUpdateData telemetryData)
         {
             _dispatcherQueue.TryEnqueue(() =>
             {
@@ -600,7 +601,7 @@ camera.up.set(0, 1, 0)
 
       
 
-        private void SendDataToCharts(TelemetryUpdateData telemetryData)
+        private void SendDataToCharts(SerialPortService.TelemetryUpdateData telemetryData)
         {
             try
             {
@@ -617,13 +618,7 @@ camera.up.set(0, 1, 0)
                     telemetryData.RocketPressure,     // Roket pressure
                     telemetryData.PayloadPressure,    // Payload pressure
                     telemetryData.PayloadHumidity,    // Payload humidity
-                    "sitPage",                        // Source
-                    telemetryData.GyroX,              // Gyro X
-                    telemetryData.GyroY,              // Gyro Y
-                    telemetryData.GyroZ,              // Gyro Z
-                    telemetryData.AccelX,             // Accel X
-                    telemetryData.AccelY,             // Accel Y
-                    telemetryData.Angle               // Angle
+                    "sitPage"                       // Source
                 );
                 
                 System.Diagnostics.Debug.WriteLine($"sitPage TÜM VERÝLER SerialPortService üzerinden chart'lara gönderildi");
@@ -634,7 +629,7 @@ camera.up.set(0, 1, 0)
             }
         }
 
-        private void UpdateStatistics(TelemetryUpdateData telemetryData)
+        private void UpdateStatistics(SerialPortService.TelemetryUpdateData telemetryData)
         {
             try
             {
@@ -647,14 +642,14 @@ camera.up.set(0, 1, 0)
                 }
 
 
-                if (telemetryData.CRC >= 0) // TelemetryUpdateData sýnýfýna CRC eklenmelidir
+                if (telemetryData.CRC >= 0) 
                 {
                     _CRC = telemetryData.CRC;
                     CRCText.Text = _CRC.ToString();
                 }
 
                 // Team ID deðerini güncelle
-                if (telemetryData.TeamID > 0) // TelemetryUpdateData sýnýfýna TeamID eklenmelidir
+                if (telemetryData.TeamID > 0) 
                 {
                     _TeamID = telemetryData.TeamID;
                     TeamIDText.Text = _TeamID.ToString();
@@ -691,7 +686,7 @@ camera.up.set(0, 1, 0)
             // Event handler'larý kaldýr
             SerialPortService.OnTelemetryDataUpdated -= OnTelemetryDataUpdated;
             SerialPortService.OnDataReceived -= OnSerialDataReceived;
-            
+            SerialPortService.OnRotationDataReceived -= OnRotationDataReceived;
             System.Diagnostics.Debug.WriteLine("sitPage'den ayrýldý - Event handler'lar kaldýrýldý");
         }
     }
