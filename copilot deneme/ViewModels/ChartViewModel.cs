@@ -94,7 +94,7 @@ namespace copilot_deneme.ViewModels
                 {
                     Name = " Y Ývmesi",
                     Values = _accelYValue,
-                    Stroke = new SolidColorPaint(SKColors.IndianRed) { StrokeThickness = 3 },
+                    Stroke = new SolidColorPaint(SKColors.Gold) { StrokeThickness = 3 },
                     Fill = null, GeometrySize = 0
                 },
                  new LineSeries<ObservableValue>
