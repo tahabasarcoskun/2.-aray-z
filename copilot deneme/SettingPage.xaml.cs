@@ -54,22 +54,58 @@ namespace copilot_deneme
 
         private void RefreshAvailablePorts()
         {
-            string[] availablePorts = SerialPort.GetPortNames();
+            string[] availablePorts = SerialPortService.GetAvailablePorts();
+            string[] availableOutputPorts = SerialPortService.GetAvailableOutputPorts();
+            
             var inputSelection = PortComboBox_Input.SelectedItem as string;
             var outputSelection = PortComboBox_Output.SelectedItem as string;
 
             PortComboBox_Input.ItemsSource = availablePorts;
-            PortComboBox_Output.ItemsSource = availablePorts;
+            PortComboBox_Output.ItemsSource = availableOutputPorts;
 
-            if (availablePorts.Contains(inputSelection)) PortComboBox_Input.SelectedItem = inputSelection;
-            else if (availablePorts.Length > 0) PortComboBox_Input.SelectedIndex = 0;
+            // Input port selection logic
+            if (availablePorts.Contains(inputSelection)) 
+            {
+                PortComboBox_Input.SelectedItem = inputSelection;
+            }
+            else if (availablePorts.Length > 0) 
+            {
+                PortComboBox_Input.SelectedIndex = 0;
+            }
+            else
+            {
+                PortComboBox_Input.SelectedIndex = -1;
+            }
 
-            if (availablePorts.Contains(outputSelection)) PortComboBox_Output.SelectedItem = outputSelection;
-            else if (availablePorts.Length > 1) PortComboBox_Output.SelectedIndex = 1;
-            else if (availablePorts.Length > 0) PortComboBox_Output.SelectedIndex = 0;
+            // Output port selection logic - ensure it's different from input port if possible
+            if (availableOutputPorts.Contains(outputSelection)) 
+            {
+                PortComboBox_Output.SelectedItem = outputSelection;
+            }
+            else if (availableOutputPorts.Length > 0) 
+            {
+                PortComboBox_Output.SelectedIndex = 0;
+            }
+            else
+            {
+                // No output ports available (either no ports or all are used by input)
+                PortComboBox_Output.SelectedIndex = -1;
+            }
 
-            StatusText_Input.Text = $"{availablePorts.Length} port bulundu.";
-            StatusText_Output.Text = $"{availablePorts.Length} port bulundu.";
+            // Update status messages
+            StatusText_Input.Text = availablePorts.Length > 0 
+                ? $"{availablePorts.Length} port bulundu." 
+                : "Hiç port bulunamadı.";
+                
+            StatusText_Output.Text = availableOutputPorts.Length > 0 
+                ? $"{availableOutputPorts.Length} çıkış portu mevcut." 
+                : (availablePorts.Length > 0 
+                    ? "Çıkış için ek port gerekli (giriş portu kullanımda)." 
+                    : "Hiç port bulunamadı.");
+            
+            // Debug log available ports
+            System.Diagnostics.Debug.WriteLine($"Available input ports: {string.Join(", ", availablePorts)}");
+            System.Diagnostics.Debug.WriteLine($"Available output ports: {string.Join(", ", availableOutputPorts)}");
         }
 
         private void ConnectInputPort_Click(object sender, RoutedEventArgs e)
@@ -77,7 +113,17 @@ namespace copilot_deneme
             try
             {
                 var portName = PortComboBox_Input.SelectedItem as string;
-                if (string.IsNullOrEmpty(portName)) throw new InvalidOperationException("Giriş için bir port seçin.");
+                if (string.IsNullOrEmpty(portName)) 
+                {
+                    throw new InvalidOperationException("Giriş için bir port seçin.");
+                }
+                
+                // Verify port exists
+                if (!SerialPortService.GetAvailablePorts().Contains(portName))
+                {
+                    throw new InvalidOperationException($"Port {portName} mevcut değil. Portları yenileyin.");
+                }
+                
                 var baudRate = int.Parse((BaudRateComboBox_Input.SelectedItem as ComboBoxItem).Content.ToString());
 
                 // SerialPortService'i kullan
@@ -86,19 +132,38 @@ namespace copilot_deneme
 
                 StatusIndicator_Input.Fill = new SolidColorBrush(Colors.LightGreen);
                 StatusText_Input.Text = $"Bağlandı: {portName}";
+                
+                // Refresh output ports to exclude the newly connected input port
+                RefreshAvailablePorts();
+                
+                System.Diagnostics.Debug.WriteLine($"Input port connected successfully: {portName}");
             }
             catch (Exception ex)
             {
                 StatusIndicator_Input.Fill = new SolidColorBrush(Colors.Red);
                 StatusText_Input.Text = $"Hata: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"Input port connection failed: {ex.Message}");
             }
         }
 
         private void DisconnectInputPort_Click(object sender, RoutedEventArgs e)
         {
-            SerialPortService.StopReading();
-            StatusIndicator_Input.Fill = new SolidColorBrush(Colors.Red);
-            StatusText_Input.Text = "Giriş Portu Kapalı";
+            try
+            {
+                SerialPortService.StopReading();
+                StatusIndicator_Input.Fill = new SolidColorBrush(Colors.Red);
+                StatusText_Input.Text = "Giriş Portu Kapalı";
+                
+                // Refresh ports to make the disconnected port available for output
+                RefreshAvailablePorts();
+                
+                System.Diagnostics.Debug.WriteLine("Input port disconnected");
+            }
+            catch (Exception ex)
+            {
+                StatusText_Input.Text = $"Kapatma Hatası: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"Input port disconnect failed: {ex.Message}");
+            }
         }
 
         private void ConnectOutputPort_Click(object sender, RoutedEventArgs e)
@@ -107,7 +172,15 @@ namespace copilot_deneme
             {
                 var portName = PortComboBox_Output.SelectedItem as string;
                 if (string.IsNullOrEmpty(portName))
+                {
                     throw new InvalidOperationException("Çıkış için bir port seçin.");
+                }
+
+                // Verify port exists in available output ports
+                if (!SerialPortService.GetAvailableOutputPorts().Contains(portName))
+                {
+                    throw new InvalidOperationException($"Port {portName} çıkış için mevcut değil. Portları yenileyin.");
+                }
 
                 var baudRate = int.Parse((BaudRateComboBox_Output.SelectedItem as ComboBoxItem).Content.ToString());
 
@@ -116,12 +189,13 @@ namespace copilot_deneme
                 StatusIndicator_Output.Fill = new SolidColorBrush(Colors.LightGreen);
                 StatusText_Output.Text = $"HYI Output Aktif: {portName} ({baudRate})";
 
-                System.Diagnostics.Debug.WriteLine($"Output port connected: {portName}");
+                System.Diagnostics.Debug.WriteLine($"Output port connected successfully: {portName}");
             }
             catch (Exception ex)
             {
                 StatusIndicator_Output.Fill = new SolidColorBrush(Colors.Red);
                 StatusText_Output.Text = $"Output Hatası: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"Output port connection failed: {ex.Message}");
             }
         }
 
@@ -132,10 +206,12 @@ namespace copilot_deneme
                 SerialPortService.CloseOutputPort();
                 StatusIndicator_Output.Fill = new SolidColorBrush(Colors.Red);
                 StatusText_Output.Text = "Çıkış Portu Kapalı";
+                System.Diagnostics.Debug.WriteLine("Output port disconnected");
             }
             catch (Exception ex)
             {
                 StatusText_Output.Text = $"Kapatma Hatası: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"Output port disconnect failed: {ex.Message}");
             }
         }
 

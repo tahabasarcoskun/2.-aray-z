@@ -400,33 +400,132 @@ namespace copilot_deneme
 <html lang=""en"">
 <head>
   <meta charset=""UTF-8"" />
-  <title>3D Scene with STL</title>
+  <title>3D Roket Modeli - Telemetri Görüntüleyici</title>
   <style>
-    body, html { margin: 0; padding: 0; overflow: hidden; background-color: #1e1e1e; }
+    body, html { 
+      margin: 0; 
+      padding: 0; 
+      overflow: hidden; 
+      background: linear-gradient(135deg, #1e1e1e 0%, #2d2d30 100%);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
     canvas { display: block; }
+    
+    .controls-panel {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 12px;
+      min-width: 200px;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .control-title {
+      font-weight: bold;
+      font-size: 14px;
+      margin-bottom: 10px;
+      color: #64B5F6;
+      text-align: center;
+    }
+    
+    .rotation-info {
+      margin: 5px 0;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .model-info {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
   </style>
 </head>
 <body>
+  <!-- Loading indicator -->
+  <div id=""loading"" style=""position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 18px; z-index: 1000;"">
+    3D Model Yükleniyor...
+  </div>
+  
+  <div class=""controls-panel"">
+    <div class=""control-title"">?? Roket Yönelimi</div>
+    <div class=""rotation-info"">
+      <span>Yaw (Y):</span>
+      <span id=""yaw-value"">0.0°</span>
+    </div>
+    <div class=""rotation-info"">
+      <span>Pitch (X):</span>
+      <span id=""pitch-value"">0.0°</span>
+    </div>
+    <div class=""rotation-info"">
+      <span>Roll (Z):</span>
+      <span id=""roll-value"">0.0°</span>
+    </div>
+  </div>
+  
+  <div class=""model-info"">
+    <div style=""font-weight: bold; margin-bottom: 5px;"">?? Model Bilgileri</div>
+    <div>Model: Güzel Roketim (GLB)</div>
+    <div>Durum: <span id=""model-status"">Yükleniyor...</span></div>
+  </div>
+
   <script src=""https://cdn.jsdelivr.net/npm/three@0.142.0/build/three.min.js""></script>
-  <script src=""https://cdn.jsdelivr.net/npm/three@0.142.0/examples/js/loaders/STLLoader.js""></script>
+  <script src=""https://cdn.jsdelivr.net/npm/three@0.142.0/examples/js/loaders/GLTFLoader.js""></script>
   
   <script>
+    // Scene setup
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    scene.background = new THREE.Color(0x1a1a1a);
+    
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
     document.body.appendChild(renderer.domElement);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
-    dirLight.position.set(5, 10, 7.5);
-    scene.add(ambientLight, dirLight);
+    // Enhanced lighting setup
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+    scene.add(ambientLight);
+    
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    directionalLight.position.set(10, 10, 5);
+    directionalLight.castShadow = true;
+    directionalLight.shadow.mapSize.width = 2048;
+    directionalLight.shadow.mapSize.height = 2048;
+    scene.add(directionalLight);
+    
+    const spotLight = new THREE.SpotLight(0x64B5F6, 0.8);
+    spotLight.position.set(-10, 15, 10);
+    spotLight.angle = Math.PI / 6;
+    spotLight.penumbra = 0.3;
+    scene.add(spotLight);
 
-    camera.position.set(5, 5, 5);
-camera.lookAt(0, 0, 0);
-camera.up.set(0, 1, 0)
+    // Camera positioning
+    camera.position.set(8, 6, 8);
+    camera.lookAt(0, 0, 0);
 
+    // Model variables
+    let rocketModel = null;
+    let mixer = null;
+    const clock = new THREE.Clock();
 
+<<<<<<< Updated upstream
     let model;
     const loader = new THREE.STLLoader();
 
@@ -463,26 +562,187 @@ camera.up.set(0, 1, 0)
     function (error) { console.error('STL yÃ¼klenirken hata:', error); }
 );
 
+=======
+    // Load GLB model
+    const loader = new THREE.GLTFLoader();
+    
+    loader.load(
+      'https://assets.local/3DModels/asýl/güzelroketim.glb',
+      function (gltf) {
+        console.log('GLB model baþarýyla yüklendi!', gltf);
+        
+        rocketModel = gltf.scene;
+        
+        // Model scale and positioning
+        const box = new THREE.Box3().setFromObject(rocketModel);
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+        
+        // Center the model
+        rocketModel.position.sub(center);
+        
+        // Scale model appropriately
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const targetSize = 6;
+        const scale = targetSize / maxDim;
+        rocketModel.scale.setScalar(scale);
+        
+        // Add to scene
+        scene.add(rocketModel);
+        
+        // Enable shadows for all meshes
+        rocketModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+            
+            // Enhance materials
+            if (child.material) {
+              child.material.metalness = 0.7;
+              child.material.roughness = 0.3;
+            }
+          }
+        });
+        
+        // Check for animations
+        if (gltf.animations && gltf.animations.length > 0) {
+          mixer = new THREE.AnimationMixer(rocketModel);
+          gltf.animations.forEach((clip) => {
+            mixer.clipAction(clip).play();
+          });
+        }
+        
+        // Update UI
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('model-status').textContent = 'Yüklendi ?';
+        
+        console.log('Model sahneye eklendi:', {
+          originalSize: size,
+          scale: scale,
+          animations: gltf.animations.length
+        });
+      },
+      function (progress) {
+        const percent = (progress.loaded / progress.total * 100).toFixed(1);
+        document.getElementById('loading').textContent = `3D Model Yükleniyor... ${percent}%`;
+        console.log('Yükleme ilerlemesi:', percent + '%');
+      },
+      function (error) {
+        console.error('GLB model yükleme hatasý:', error);
+        document.getElementById('loading').textContent = 'Model yükleme hatasý!';
+        document.getElementById('model-status').textContent = 'Hata ?';
+        
+        // Fallback: Show a simple placeholder
+        const geometry = new THREE.ConeGeometry(1, 4, 8);
+        const material = new THREE.MeshStandardMaterial({ 
+          color: 0xff6b35,
+          metalness: 0.5,
+          roughness: 0.3 
+        });
+        const placeholder = new THREE.Mesh(geometry, material);
+        placeholder.position.y = 0;
+        scene.add(placeholder);
+        rocketModel = placeholder;
+        
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('model-status').textContent = 'Yedek Model ??';
+      }
+    );
+>>>>>>> Stashed changes
 
+    // Animation loop
     function animate() {
-        requestAnimationFrame(animate);
-        renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+      
+      const delta = clock.getDelta();
+      
+      // Update animations if available
+      if (mixer) {
+        mixer.update(delta);
+      }
+      
+      // Subtle auto-rotation when no telemetry data
+      if (rocketModel && Date.now() % 10000 < 5000) {
+        // rocketModel.rotation.y += 0.002;
+      }
+      
+      renderer.render(scene, camera);
     }
     animate();
 
+    // Update rotation from telemetry data
+    let currentYaw = 0, currentPitch = 0, currentRoll = 0;
+    
     window.updateModelRotation = (yaw, pitch, roll) => {
-        if (model) {
-            model.rotation.y = yaw * Math.PI / 180;
-            model.rotation.x = pitch * Math.PI / 180;
-            model.rotation.z = roll * Math.PI / 180;
-        }
+      if (rocketModel) {
+        // Convert degrees to radians and apply rotations
+        currentYaw = yaw;
+        currentPitch = pitch;
+        currentRoll = roll;
+        
+        rocketModel.rotation.y = yaw * Math.PI / 180;    // Yaw
+        rocketModel.rotation.x = pitch * Math.PI / 180;  // Pitch  
+        rocketModel.rotation.z = roll * Math.PI / 180;   // Roll
+        
+        // Update UI display
+        document.getElementById('yaw-value').textContent = yaw.toFixed(1) + '°';
+        document.getElementById('pitch-value').textContent = pitch.toFixed(1) + '°';
+        document.getElementById('roll-value').textContent = roll.toFixed(1) + '°';
+        
+        console.log(`Roket yönelimi güncellendi: Yaw=${yaw.toFixed(1)}°, Pitch=${pitch.toFixed(1)}°, Roll=${roll.toFixed(1)}°`);
+      }
     };
 
-    window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
+    // Mouse controls for manual rotation (optional)
+    let mouseDown = false;
+    let mouseX = 0;
+    let mouseY = 0;
+    
+    renderer.domElement.addEventListener('mousedown', (event) => {
+      mouseDown = true;
+      mouseX = event.clientX;
+      mouseY = event.clientY;
     });
+    
+    renderer.domElement.addEventListener('mouseup', () => {
+      mouseDown = false;
+    });
+    
+    renderer.domElement.addEventListener('mousemove', (event) => {
+      if (!mouseDown || !rocketModel) return;
+      
+      const deltaX = event.clientX - mouseX;
+      const deltaY = event.clientY - mouseY;
+      
+      // Only allow manual rotation if no recent telemetry updates
+      camera.position.x = camera.position.x * Math.cos(deltaX * 0.01) - camera.position.z * Math.sin(deltaX * 0.01);
+      camera.position.z = camera.position.x * Math.sin(deltaX * 0.01) + camera.position.z * Math.cos(deltaX * 0.01);
+      camera.lookAt(0, 0, 0);
+      
+      mouseX = event.clientX;
+      mouseY = event.clientY;
+    });
+    
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+    
+    // Zoom controls
+    renderer.domElement.addEventListener('wheel', (event) => {
+      const zoomSpeed = 0.1;
+      if (event.deltaY > 0) {
+        camera.position.multiplyScalar(1 + zoomSpeed);
+      } else {
+        camera.position.multiplyScalar(1 - zoomSpeed);
+      }
+      camera.lookAt(0, 0, 0);
+      event.preventDefault();
+    });
+    
+    console.log('3D Görüntüleyici baþlatýldý - GLB model yükleniyor...');
   </script>
 </body>
 </html>";
