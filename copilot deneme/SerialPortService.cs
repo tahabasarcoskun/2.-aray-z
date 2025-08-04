@@ -2,6 +2,7 @@ using copilot_deneme.ViewModels;
 using Microsoft.UI.Dispatching;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO.Ports;
 using System.Linq;
 
@@ -210,11 +211,11 @@ namespace copilot_deneme
 
 
         public static void UpdateChartsFromExternalData(float rocketAltitude, float payloadAltitude,
-            float rocketAccelZ, float payloadAccelZ, float rocketSpeed, float payloadSpeed,
+            float accelX,float accelY,float accelZ, float rocketSpeed, float payloadSpeed,
             float rocketTemp, float payloadTemp, float rocketPressure, float payloadPressure,
             float payloadHumidity, string source = "External",
-            float gyroX = 0, float gyroY = 0, float gyroZ = 0,
-            float accelX = 0, float accelY = 0, float angle = 0)
+            
+            float rocketAccelX = 0, float rocketAccelY = 0)
         {
             Dispatcher?.TryEnqueue(() =>
             {
@@ -226,17 +227,17 @@ namespace copilot_deneme
                         return;
                     }
 
-                    UpdateViewModelData(rocketAltitude, payloadAltitude, rocketAccelZ, payloadAccelZ,
+                    UpdateViewModelData(rocketAltitude, payloadAltitude,
                         rocketSpeed, payloadSpeed, rocketTemp, payloadTemp, rocketPressure,
-                        payloadPressure, payloadHumidity, gyroX, gyroY, gyroZ, accelX, accelY, angle);
+                        payloadPressure, payloadHumidity, accelX, accelY, accelZ);
 
                     ViewModel.UpdateStatus($"{source} verisi: {DateTime.Now:HH:mm:ss}");
 
                     System.Diagnostics.Debug.WriteLine($"{source} TÜM VERÝLER chart'lara eklendi:");
                     System.Diagnostics.Debug.WriteLine($"  Roket: {rocketAltitude:F2}m, Payload: {payloadAltitude:F2}m");
-                    System.Diagnostics.Debug.WriteLine($"  Jiroskop X:{gyroX:F2}, Y:{gyroY:F2}, Z:{gyroZ:F2}");
-                    System.Diagnostics.Debug.WriteLine($"  Ývme X:{accelX:F2}, Y:{accelY:F2}, Z:{rocketAccelZ:F2}");
-                    System.Diagnostics.Debug.WriteLine($"  Açý: {angle:F2}°");
+                    
+                    System.Diagnostics.Debug.WriteLine($"  Ývme X:{rocketAccelX:F2}, Y:{rocketAccelY:F2}, Z:{accelZ:F2}");
+                    
                 }
                 catch (Exception ex)
                 {
@@ -254,13 +255,21 @@ namespace copilot_deneme
                 if (_inputPort == null) return;
 
                 int bytesToRead = _inputPort.BytesToRead;
-                byte[] tempBuffer = new byte[bytesToRead];
-                _inputPort.Read(tempBuffer, 0, bytesToRead);
+                if (bytesToRead == 0) return;
 
-                string dataAsString = System.Text.Encoding.UTF8.GetString(tempBuffer);
+                byte[] tempBuffer = new byte[bytesToRead];
+                int bytesRead = _inputPort.Read(tempBuffer, 0, bytesToRead);
+
+                // Debug: Log received bytes
+                System.Diagnostics.Debug.WriteLine($"Received {bytesRead} bytes: {BitConverter.ToString(tempBuffer.Take(Math.Min(bytesRead, 20)).ToArray())}...");
+
+                string dataAsString = System.Text.Encoding.UTF8.GetString(tempBuffer,0,bytesRead);
                 OnDataReceived?.Invoke(dataAsString);
 
-                _binaryBuffer.AddRange(tempBuffer);
+                _binaryBuffer.AddRange(tempBuffer.Take(bytesRead));
+                // Debug: Log buffer size
+                System.Diagnostics.Debug.WriteLine($"Buffer size: {_binaryBuffer.Count}");
+
                 ProcessBinaryBuffer();
             }
             catch (Exception ex)
@@ -284,13 +293,16 @@ namespace copilot_deneme
 
                 if (headerIndex == -1)
                 {
-                    if (_binaryBuffer.Count > 0)
+                    if (_binaryBuffer.Count > HYI_HEADER.Length)
                         _binaryBuffer.RemoveAt(0);
+                    else
+                        break;
                     continue;
                 }
 
                 if (headerIndex > 0)
                 {
+                    System.Diagnostics.Debug.WriteLine($"HYI Header found at index {headerIndex}, removing preceding bytes");
                     _binaryBuffer.RemoveRange(0, headerIndex);
                     continue;
                 }
@@ -304,6 +316,7 @@ namespace copilot_deneme
 
                 if (receivedChecksum == calculatedChecksum)
                 {
+                    System.Diagnostics.Debug.WriteLine("HYI packet checksum valid!");
                     var telemetryData = ParseHYIData(packet);
 
                   
@@ -342,10 +355,18 @@ namespace copilot_deneme
                 int headerIndex = FindHeader(_binaryBuffer, NORMAL_HEADER);
 
                 if (headerIndex == -1)
-                    break;
+                {
+                    if (_binaryBuffer.Count > NORMAL_HEADER.Length)
+                        _binaryBuffer.RemoveAt(0);
+                    else
+                        break;
+                    continue;
+                }
+                    
 
                 if (headerIndex > 0)
                 {
+                    System.Diagnostics.Debug.WriteLine($"Normal Header found at index {headerIndex}, removing preceding bytes");
                     _binaryBuffer.RemoveRange(0, headerIndex);
                     continue;
                 }
@@ -370,6 +391,13 @@ namespace copilot_deneme
         {
             try
             {
+                // First check if packet has correct header
+                if (packet[0] != 0xAA || packet[1] != 0xBB || packet[2] != 0xCC || packet[3] != 0xDD)
+                {
+                    System.Diagnostics.Debug.WriteLine("Invalid normal telemetry header!");
+                    return null;
+                }
+
                 var telemetryData = new TelemetryUpdateData
                 {
                     PacketCounter = packet[4],
@@ -399,11 +427,11 @@ namespace copilot_deneme
 
                 };
 
-                byte calculatedCRC = CalculateSimpleCRC(packet, 4, 86);
-                if (calculatedCRC != packet[96])
+                byte calculatedCRC = CalculateSimpleCRC(packet, 4, 82);
+                if (calculatedCRC != packet[86])
                 {
                     System.Diagnostics.Debug.WriteLine("Normal telemetry CRC hatasý!");
-                    return null;
+                    //return null;
                 }
 
                 return telemetryData;
@@ -492,11 +520,10 @@ namespace copilot_deneme
                         return;
 
                     UpdateViewModelData(telemetryData.RocketAltitude, telemetryData.PayloadAltitude,
-                        telemetryData.AccelZ, telemetryData.AccelZ, telemetryData.RocketSpeed, telemetryData.PayloadSpeed,
+                        telemetryData.AccelZ, telemetryData.RocketSpeed, telemetryData.PayloadSpeed,
                         telemetryData.RocketTemperature, telemetryData.PayloadTemperature,
                         telemetryData.RocketPressure, telemetryData.PayloadPressure, telemetryData.PayloadHumidity,
-                        telemetryData.GyroX, telemetryData.GyroY, telemetryData.GyroZ,
-                        telemetryData.AccelX, telemetryData.AccelY, telemetryData.Angle);
+                        telemetryData.AccelX, telemetryData.AccelY);
 
                     ViewModel.UpdateStatus($"Serial verisi: {DateTime.Now:HH:mm:ss} - Paket: {telemetryData.PacketCounter}");
                 }
@@ -508,17 +535,21 @@ namespace copilot_deneme
         }
 
         private static void UpdateViewModelData(float rocketAltitude, float payloadAltitude,
-            float rocketAccelZ, float payloadAccelZ, float rocketSpeed, float payloadSpeed,
+            float accelZ, float accelX, float accelY, float rocketSpeed, float payloadSpeed,
             float rocketTemp, float payloadTemp, float rocketPressure, float payloadPressure,
-            float payloadHumidity, float gyroX, float gyroY, float gyroZ,
-            float accelX, float accelY, float angle)
+            float payloadHumidity)
         {
-            if (ViewModel == null) return;
+            if (ViewModel == null)
+            {
+                System.Diagnostics.Debug.WriteLine("UpdateViewModelData: ViewModel is null!");
+                return;
+            }
 
             ViewModel.AddRocketAltitudeValue(rocketAltitude);
             ViewModel.addPayloadAltitudeValue(payloadAltitude);
-            ViewModel.addRocketAccelZValue(rocketAccelZ);
-            ViewModel.addPayloadAccelZValue(payloadAccelZ);
+            ViewModel.addRocketAccelXValue(accelX);
+            ViewModel.addRocketAccelYValue(accelY);
+            ViewModel.addRocketAccelZValue(accelZ);
             ViewModel.addRocketSpeedValue(rocketSpeed);
             ViewModel.addPayloadSpeedValue(payloadSpeed);
             ViewModel.addRocketTempValue(rocketTemp);
@@ -526,12 +557,8 @@ namespace copilot_deneme
             ViewModel.addRocketPressureValue(rocketPressure);
             ViewModel.addPayloadPressureValue(payloadPressure);
             ViewModel.addPayloadHumidityValue(payloadHumidity);
-            ViewModel.addGyroXValue(gyroX);
-            ViewModel.addGyroYValue(gyroY);
-            ViewModel.addGyroZValue(gyroZ);
-            ViewModel.addAccelXValue(accelX);
-            ViewModel.addAccelYValue(accelY);
-            ViewModel.addAngleValue(angle);
+
+            System.Diagnostics.Debug.WriteLine($"ViewModel updated - Rocket Alt: {rocketAltitude:F2}, Payload Alt: {payloadAltitude:F2}");
         }
         #endregion
 

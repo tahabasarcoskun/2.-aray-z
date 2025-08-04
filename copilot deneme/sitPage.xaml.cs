@@ -609,8 +609,9 @@ camera.up.set(0, 1, 0)
                 SerialPortService.UpdateChartsFromExternalData(
                     telemetryData.RocketAltitude,     // Roket altitude
                     telemetryData.PayloadAltitude,    // Payload altitude
-                    telemetryData.AccelZ,             // Roket AccelZ
-                    telemetryData.AccelZ,             // Payload AccelZ
+                    telemetryData.AccelZ,             
+                    telemetryData.AccelY,
+                    telemetryData.AccelX,              
                     telemetryData.RocketSpeed,        // Roket speed
                     telemetryData.PayloadSpeed,       // Payload speed
                     telemetryData.RocketTemperature,  // Roket temperature

@@ -8,7 +8,7 @@ namespace copilot_deneme
     public sealed partial class ChartPage : Page
     {
         // ViewModel'i doðrudan servisten alýyoruz
-        public ChartViewModel ViewModel => SerialPortService.ViewModel;
+        public ChartViewModel ?ViewModel => SerialPortService.ViewModel;
 
         public ChartPage()
         {
