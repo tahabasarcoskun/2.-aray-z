@@ -10,21 +10,23 @@ namespace copilot_deneme
 {
     public class SerialPortService
     {
-        // Mevcut input port
         private static SerialPort? _inputPort;
-
-        // Yeni output port (HYI için)
         private static SerialPort? _outputPort;
 
         private static readonly List<byte> _binaryBuffer = new List<byte>();
 
-        // HYI paket özellikleri
+        // HYI paket Ã¶zellikleri
         private const int HYI_PACKET_SIZE = 78;
         private static readonly byte[] HYI_HEADER = { 0xFF, 0xFF, 0x54, 0x52 };
 
-        // Normal telemetri paket özellikleri
-        private const int NORMAL_PACKET_SIZE = 96;
-        private static readonly byte[] NORMAL_HEADER = { 0xAA, 0xBB, 0xCC, 0xDD };
+        //Roket telemetri paketi
+        private const int ROCKET_PACKET_SIZE = 64;
+        private static readonly byte[] ROCKET_HEADER = { 0xAB, 0xBC, 0x12, 0x13 };
+
+        //payload telemetri paketi
+        private const int PAYLOAD_PACKET_SIZE = 34;
+        private static readonly byte[] PAYLOAD_HEADER = { 0xCD, 0XDF, 0x14, 0x15 };
+
 
         #region Properties
         public static SerialPort? SerialPort
@@ -39,9 +41,11 @@ namespace copilot_deneme
 
         #region Events
         public static event Action<string>? OnDataReceived;
-        public static event Action<TelemetryUpdateData>? OnTelemetryDataUpdated;
+        public static event Action<PayloadTelemetryData>? OnPayloadDataUpdated;
+        public static event Action<RocketTelemetryData>? OnRocketDataUpdated;
         public static event Action<HYITelemetryData>? OnHYIPacketReceived;
         public static event Action<float, float, float>? OnRotationDataReceived;
+        public static event Action<RocketTelemetryData, PayloadTelemetryData>? OnTelemetryDataUpdated;
         #endregion
 
         #region Public Methods
@@ -98,7 +102,7 @@ namespace copilot_deneme
         public static void Write(byte[] data)
         {
             if (_inputPort == null || !_inputPort.IsOpen)
-                throw new InvalidOperationException("Yazma iþlemi için port açýk deðil.");
+                throw new InvalidOperationException("yazma iÅŸlemi iÃ§in port aÃ§Ä±k deÄŸil");
             _inputPort.Write(data, 0, data.Length);
         }
 
@@ -175,7 +179,7 @@ namespace copilot_deneme
         public static void WriteToOutputPort(byte[] data)
         {
             if (_outputPort == null || !_outputPort.IsOpen)
-                throw new InvalidOperationException("Output port açýk deðil.");
+                throw new InvalidOperationException("Output port aÃ§Ä±k deÄŸil.");
 
             try
             {
@@ -233,15 +237,12 @@ namespace copilot_deneme
 
                     ViewModel.UpdateStatus($"{source} verisi: {DateTime.Now:HH:mm:ss}");
 
-                    System.Diagnostics.Debug.WriteLine($"{source} TÜM VERÝLER chart'lara eklendi:");
-                    System.Diagnostics.Debug.WriteLine($"  Roket: {rocketAltitude:F2}m, Payload: {payloadAltitude:F2}m");
-                    
-                    System.Diagnostics.Debug.WriteLine($"  Ývme X:{rocketAccelX:F2}, Y:{rocketAccelY:F2}, Z:{accelZ:F2}");
+                    System.Diagnostics.Debug.WriteLine($"{source} tÃ¼m veriler chart'lara eklendi:");
                     
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"{source} chart güncelleme hatasý: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"{source} chart gï¿½ncelleme hatasï¿½: {ex.Message}");
                 }
             });
         }
@@ -282,7 +283,8 @@ namespace copilot_deneme
         private static void ProcessBinaryBuffer()
         {
             ProcessHYIPackets();
-            ProcessNormalTelemetryPackets();
+            ProcessPayloadTelemetryPackets();
+            ProcessRocketTelemetryPackets();
         }
 
         private static void ProcessHYIPackets()
@@ -341,22 +343,22 @@ namespace copilot_deneme
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine("HYI Checksum hatasý!");
+                    System.Diagnostics.Debug.WriteLine("HYI Checksum hatasï¿½!");
                 }
 
                 _binaryBuffer.RemoveRange(0, HYI_PACKET_SIZE);
             }
         }
 
-        private static void ProcessNormalTelemetryPackets()
+        private static void ProcessPayloadTelemetryPackets()
         {
-            while (_binaryBuffer.Count >= NORMAL_PACKET_SIZE)
+            while (_binaryBuffer.Count >= PAYLOAD_HEADER.Length)
             {
-                int headerIndex = FindHeader(_binaryBuffer, NORMAL_HEADER);
+                int headerIndex = FindHeader(_binaryBuffer, PAYLOAD_HEADER);
 
                 if (headerIndex == -1)
                 {
-                    if (_binaryBuffer.Count > NORMAL_HEADER.Length)
+                    if (_binaryBuffer.Count > PAYLOAD_HEADER.Length)
                         _binaryBuffer.RemoveAt(0);
                     else
                         break;
@@ -366,80 +368,63 @@ namespace copilot_deneme
 
                 if (headerIndex > 0)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Normal Header found at index {headerIndex}, removing preceding bytes");
+                    System.Diagnostics.Debug.WriteLine($"Payload Header found at index {headerIndex}, removing preceding bytes");
                     _binaryBuffer.RemoveRange(0, headerIndex);
                     continue;
                 }
 
-                if (_binaryBuffer.Count < NORMAL_PACKET_SIZE)
+                if (_binaryBuffer.Count < PAYLOAD_PACKET_SIZE)
                     break;
 
-                byte[] packet = _binaryBuffer.GetRange(0, NORMAL_PACKET_SIZE).ToArray();
-                var telemetryData = ParseNormalTelemetryData(packet);
+                byte[] packet = _binaryBuffer.GetRange(0, PAYLOAD_PACKET_SIZE).ToArray();
+                var telemetryData = ParsePayloadData(packet);
 
                 if (telemetryData != null)
                 {
-                    UpdateCharts(telemetryData);
-                    OnTelemetryDataUpdated?.Invoke(telemetryData);
+                    UpdateCharts(null, telemetryData);
+                    OnPayloadDataUpdated?.Invoke(telemetryData);
                 }
 
-                _binaryBuffer.RemoveRange(0, NORMAL_PACKET_SIZE);
+                _binaryBuffer.RemoveRange(0, PAYLOAD_PACKET_SIZE);
             }
         }
 
-        private static TelemetryUpdateData? ParseNormalTelemetryData(byte[] packet)
+        private static void ProcessRocketTelemetryPackets()
         {
-            try
+            while (_binaryBuffer.Count >= ROCKET_HEADER.Length)
             {
-                // First check if packet has correct header
-                if (packet[0] != 0xAA || packet[1] != 0xBB || packet[2] != 0xCC || packet[3] != 0xDD)
+                int headerIndex = FindHeader(_binaryBuffer, ROCKET_HEADER);
+
+                if (headerIndex == -1)
                 {
-                    System.Diagnostics.Debug.WriteLine("Invalid normal telemetry header!");
-                    return null;
+                    if (_binaryBuffer.Count > ROCKET_HEADER.Length)
+                        _binaryBuffer.RemoveAt(0);
+                    else
+                        break;
+                    continue;
                 }
 
-                var telemetryData = new TelemetryUpdateData
-                {
-                    PacketCounter = packet[4],
-                    RocketAltitude = BitConverter.ToSingle(packet, 5),
-                    RocketLatitude = BitConverter.ToSingle(packet, 9),
-                    RocketLongitude = BitConverter.ToSingle(packet, 13),
-                    PayloadAltitude = BitConverter.ToSingle(packet, 17),
-                    PayloadLatitude = BitConverter.ToSingle(packet, 21),
-                    PayloadLongitude = BitConverter.ToSingle(packet, 25),
-                    GyroX = BitConverter.ToSingle(packet, 29),
-                    GyroY = BitConverter.ToSingle(packet, 33),
-                    GyroZ = BitConverter.ToSingle(packet, 37),
-                    AccelX = BitConverter.ToSingle(packet, 41),
-                    AccelY = BitConverter.ToSingle(packet, 45),
-                    AccelZ = BitConverter.ToSingle(packet, 49),
-                    Angle = BitConverter.ToSingle(packet, 53),
-                    RocketTemperature = BitConverter.ToSingle(packet, 57),
-                    PayloadTemperature = BitConverter.ToSingle(packet, 61),
-                    RocketPressure = BitConverter.ToSingle(packet, 65),
-                    PayloadPressure = BitConverter.ToSingle(packet, 69),
-                    PayloadHumidity = BitConverter.ToSingle(packet, 73),
-                    RocketSpeed = BitConverter.ToSingle(packet, 77),
-                    PayloadSpeed = BitConverter.ToSingle(packet, 81),
-                    status = packet[85],
-                    CRC = packet[86],
-                    TeamID = 255,
 
-                };
-
-                byte calculatedCRC = CalculateSimpleCRC(packet, 4, 82);
-                if (calculatedCRC != packet[86])
+                if (headerIndex > 0)
                 {
-                    System.Diagnostics.Debug.WriteLine("Normal telemetry CRC hatasý!");
-                    //return null;
+                    System.Diagnostics.Debug.WriteLine($"Rocket Header found at index {headerIndex}, removing preceding bytes");
+                    _binaryBuffer.RemoveRange(0, headerIndex);
+                    continue;
                 }
 
-                return telemetryData;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error parsing normal telemetry data: {ex.Message}");
-                return null;
+                if (_binaryBuffer.Count < ROCKET_PACKET_SIZE)
+                    break;
+
+                byte[] packet = _binaryBuffer.GetRange(0, ROCKET_PACKET_SIZE).ToArray();
+                var telemetryData = ParseRocketData(packet);
+
+                if (telemetryData != null)
+                {
+                    UpdateCharts(telemetryData, null);
+                    OnRocketDataUpdated?.Invoke(telemetryData);
+                }
+
+                _binaryBuffer.RemoveRange(0, ROCKET_PACKET_SIZE);
             }
         }
 
@@ -489,6 +474,95 @@ namespace copilot_deneme
                 CRC = packet[75]
             };
         }
+        private static RocketTelemetryData? ParseRocketData(byte[] packet)
+        {
+            try
+            {
+                // First check if packet has correct header
+                if (packet[0] != 0xAB || packet[1] != 0xBC || packet[2] != 0x12 || packet[3] != 0x13)
+                {
+                    System.Diagnostics.Debug.WriteLine("Invalid rocket telemetry header!");
+                    return null;
+                }
+
+                var rocketTelemetryData = new RocketTelemetryData
+                {
+                    PacketCounter = packet[4],
+                    RocketAltitude = BitConverter.ToSingle(packet, 5),
+                    RocketGpsAltitude = BitConverter.ToSingle(packet, 9),
+                    RocketLatitude = BitConverter.ToSingle(packet, 13),
+                    RocketLongitude = BitConverter.ToSingle(packet, 17),
+                    GyroX = BitConverter.ToSingle(packet, 21),
+                    GyroY = BitConverter.ToSingle(packet, 25),
+                    GyroZ = BitConverter.ToSingle(packet, 29),
+                    AccelX = BitConverter.ToSingle(packet, 33),
+                    AccelY = BitConverter.ToSingle(packet, 37),
+                    AccelZ = BitConverter.ToSingle(packet, 41),
+                    Angle = BitConverter.ToSingle(packet, 45),
+                    RocketTemperature = BitConverter.ToSingle(packet, 49),
+                    RocketPressure = BitConverter.ToSingle(packet, 53),
+                    RocketSpeed = BitConverter.ToSingle(packet, 57),
+                    status = packet[61],
+                    CRC = packet[62],
+                    TeamID = 255,
+                };
+
+                byte calculatedCRC = CalculateSimpleCRC(packet, 4, 57);
+                if (calculatedCRC != packet[62])
+                {
+                    System.Diagnostics.Debug.WriteLine("rocket telemetry CRC error!");
+                    // CRC hatasÄ± olsa bile veriyi dÃ¶ndÃ¼r (comment'e gÃ¶re)
+                }
+
+                return rocketTelemetryData;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error parsing rocket telemetry data: {ex.Message}");
+                return null;
+            }
+        }
+
+        private static PayloadTelemetryData? ParsePayloadData(byte[] packet)
+        {
+            try
+            {
+                // First check if packet has correct header
+                if (packet[0] != 0xCD || packet[1] != 0xDF || packet[2] != 0x14 || packet[3] != 0x15)
+                {
+                    System.Diagnostics.Debug.WriteLine("Invalid payload telemetry header!");
+                    return null;
+                }
+
+                var payloadTelemetryData = new PayloadTelemetryData
+                {
+                    PacketCounter = packet[4],
+                    PayloadAltitude = BitConverter.ToSingle(packet, 5),
+                    PayloadGpsAltitude = BitConverter.ToSingle(packet, 9),
+                    PayloadLatitude = BitConverter.ToSingle(packet, 13),
+                    PayloadLongitude = BitConverter.ToSingle(packet, 17),
+                    PayloadSpeed = BitConverter.ToSingle(packet, 21),
+                    PayloadTemperature = BitConverter.ToSingle(packet, 25),
+                    PayloadPressure = BitConverter.ToSingle(packet, 29),
+                    PayloadHumidity = BitConverter.ToSingle(packet, 33),
+                    CRC = packet[37],
+                };
+
+                byte calculatedCRC = CalculateSimpleCRC(packet, 4, 33);
+                if (calculatedCRC != packet[37])
+                {
+                    System.Diagnostics.Debug.WriteLine("payload telemetry CRC error!");
+                    // CRC hatasÄ± olsa bile veriyi dÃ¶ndÃ¼r (comment'e gÃ¶re)
+                }
+
+                return payloadTelemetryData;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error parsing payload telemetry data: {ex.Message}");
+                return null;
+            }
+        }
 
         private static byte CalculateChecksum(byte[] data, int offset, int length)
         {
@@ -510,7 +584,7 @@ namespace copilot_deneme
             return crc;
         }
 
-        private static void UpdateCharts(TelemetryUpdateData telemetryData)
+        private static void UpdateCharts(RocketTelemetryData? rocketTelemetry, PayloadTelemetryData? payloadTelemetry)
         {
             Dispatcher?.TryEnqueue(() =>
             {
@@ -519,13 +593,15 @@ namespace copilot_deneme
                     if (ViewModel == null)
                         return;
 
-                    UpdateViewModelData(telemetryData.RocketAltitude, telemetryData.PayloadAltitude,
-                        telemetryData.AccelZ, telemetryData.RocketSpeed, telemetryData.PayloadSpeed,
-                        telemetryData.RocketTemperature, telemetryData.PayloadTemperature,
-                        telemetryData.RocketPressure, telemetryData.PayloadPressure, telemetryData.PayloadHumidity,
-                        telemetryData.AccelX, telemetryData.AccelY);
+                    UpdateViewModelData(rocketTelemetry.RocketAltitude, rocketTelemetry.RocketSpeed,
+                        rocketTelemetry.AccelX, rocketTelemetry.AccelY, rocketTelemetry.AccelZ,
+                        rocketTelemetry.RocketTemperature, rocketTelemetry.RocketPressure
+,                       payloadTelemetry.PayloadSpeed,payloadTelemetry.PayloadAltitude,payloadTelemetry.PayloadHumidity,
+                        payloadTelemetry.PayloadTemperature, payloadTelemetry.PayloadPressure
 
-                    ViewModel.UpdateStatus($"Serial verisi: {DateTime.Now:HH:mm:ss} - Paket: {telemetryData.PacketCounter}");
+                        );
+
+                    ViewModel.UpdateStatus($"Serial verisi: {DateTime.Now:HH:mm:ss} - Paket: {rocketTelemetry.PacketCounter}");
                 }
                 catch (Exception ex)
                 {
@@ -535,9 +611,9 @@ namespace copilot_deneme
         }
 
         private static void UpdateViewModelData(float rocketAltitude, float payloadAltitude,
-            float accelZ, float accelX, float accelY, float rocketSpeed, float payloadSpeed,
-            float rocketTemp, float payloadTemp, float rocketPressure, float payloadPressure,
-            float payloadHumidity)
+            float rocketSpeed, float payloadSpeed, float rocketTemp, float payloadTemp, 
+            float rocketPressure, float payloadPressure, float payloadHumidity, 
+            float accelX, float accelY, float accelZ)
         {
             if (ViewModel == null)
             {
@@ -564,15 +640,12 @@ namespace copilot_deneme
 
 
 
-        public class TelemetryUpdateData
+        public class RocketTelemetryData
         {
             public float RocketAltitude { get; set; }
             public float RocketGpsAltitude { get; set; }
             public float RocketLatitude { get; set; }
             public float RocketLongitude { get; set; }
-            public float PayloadAltitude { get; set; }
-            public float PayloadLatitude { get; set; }
-            public float PayloadLongitude { get; set; }
             public float GyroX { get; set; }
             public float GyroY { get; set; }
             public float GyroZ { get; set; }
@@ -581,15 +654,25 @@ namespace copilot_deneme
             public float AccelZ { get; set; }
             public float Angle { get; set; }
             public float RocketSpeed { get; set; }
-            public float PayloadSpeed { get; set; }
-            public float RocketTemperature { get; set; }
-            public float PayloadTemperature { get; set; }
+            public float RocketTemperature { get; set; }  
             public float RocketPressure { get; set; }
-            public float PayloadPressure { get; set; }
-            public float PayloadHumidity { get; set; }
             public byte CRC { get; set; }
             public byte TeamID { get; set; }
             public byte status { get; set; }
+            public byte PacketCounter { get; set; }
+        }
+            
+        public class PayloadTelemetryData
+        {
+            public float PayloadGpsAltitude { get; set; }
+            public float PayloadAltitude { get; set; }
+            public float PayloadLatitude { get; set; }
+            public float PayloadLongitude { get; set; }
+            public float PayloadSpeed { get; set; }
+            public float PayloadTemperature { get; set; }
+            public float PayloadPressure { get; set; }
+            public float PayloadHumidity { get; set; }
+            public byte CRC { get; set; }
             public byte PacketCounter { get; set; }
         }
 

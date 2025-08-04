@@ -1,4 +1,4 @@
-using copilot_deneme.ViewModels;
+ï»¿using copilot_deneme.ViewModels;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -10,22 +10,22 @@ using System.Threading.Tasks;
 namespace copilot_deneme
 {
     /// <summary>
-    /// SİT Telemetri verilerini ve GPS haritasını görüntüleyen sayfa
+    /// SÄ°T Telemetri verilerini ve GPS haritasÄ±nÄ± gÃ¶rÃ¼ntÃ¼leyen sayfa
     /// </summary>
     public sealed partial class sitPage : Page
     {
         private readonly DispatcherQueue _dispatcherQueue;
         private ChartViewModel _viewModel = new ChartViewModel();
 
-        // İstatistik değişkenleri
+        // Ä°statistik deÄŸiÅŸkenleri
         private float _maxAltitude = 0;
         private int _Counter = 0;
         private int _CRC = 0;
         private int _TeamID = 0;
 
-        // GPS Harita değişkenleri
+        // GPS Harita deÄŸiÅŸkenleri
         private bool _isMapInitialized = false;
-        private double _currentRocketLat = 39.925533;  // Ankara başlangıç konumu
+        private double _currentRocketLat = 39.925533;  // Ankara baÅŸlangÄ±Ã§ konumu
         private double _currentRocketLon = 32.866287;
         private double _currentPayloadLat = 39.925533;
         private double _currentPayloadLon = 32.866287;
@@ -35,7 +35,7 @@ namespace copilot_deneme
             this.InitializeComponent();
             _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
             
-            // SerialPortService'den telemetri veri güncellemelerini dinle
+            // SerialPortService'den telemetri veri gÃ¼ncellemelerini dinle
             SerialPortService.OnTelemetryDataUpdated += OnTelemetryDataUpdated;
             SerialPortService.OnDataReceived += OnSerialDataReceived;
             SerialPortService.OnRotationDataReceived += OnRotationDataReceived;
@@ -57,21 +57,21 @@ namespace copilot_deneme
         private void OnRotationDataReceived(float yaw, float pitch, float roll)
         {
            
-            // Gelen verinin UI thread'inde işlendiğinden emin ol
+            // Gelen verinin UI thread'inde iÅŸlendiÄŸinden emin ol
             _dispatcherQueue.TryEnqueue(async () =>
             {
-                // 3D modeli güncellemek için mevcut metodunuzu çağırın
+                // 3D modeli gÃ¼ncellemek iÃ§in mevcut metodunuzu Ã§aÄŸÄ±rÄ±n
                 await UpdateRotationAsync(yaw, pitch, roll);
             });
         }
 
-        // Telemetri verisi geldikçe bu metodu çağırın:
+        // Telemetri verisi geldikÃ§e bu metodu Ã§aÄŸÄ±rÄ±n:
         public async Task UpdateRotationAsync(float yaw, float pitch, float roll)
         {
             if (ThreeDWebView.CoreWebView2 == null)
                 return;
 
-            // JS fonksiyonunu çağır
+            // JS fonksiyonunu Ã§aÄŸÄ±r
             string script = $"updateModelRotation({yaw.ToString(CultureInfo.InvariantCulture)}, " +
                                            $"{pitch.ToString(CultureInfo.InvariantCulture)}, " +
                                            $"{roll.ToString(CultureInfo.InvariantCulture)});";
@@ -88,11 +88,11 @@ namespace copilot_deneme
                 MapWebView.NavigateToString(mapHtml);
                 
                 _isMapInitialized = true;
-                System.Diagnostics.Debug.WriteLine("sitPage GPS harita başarıyla başlatıldı");
+                System.Diagnostics.Debug.WriteLine("sitPage GPS harita baÅŸarÄ±yla baÅŸlatÄ±ldÄ±");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"sitPage GPS harita başlatma hatası: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"sitPage GPS harita baÅŸlatma hatasÄ±: {ex.Message}");
             }
         }
 
@@ -200,56 +200,25 @@ namespace copilot_deneme
 </head>
 <body>
     <div id='map'></div>
-    
-    <div class='info-panel'>
-        <div class='info-title'>??? GPS Koordinatları</div>
-        <div class='coord-row'>
-            <span>?? Roket:</span>
-            <span id='rocket-coords'>39.9255, 32.8663</span>
-        </div>
-        <div class='coord-row'>
-            <span>?? Payload:</span>
-            <span id='payload-coords'>39.9255, 32.8663</span>
-        </div>
-        <div style='margin-top: 8px; font-size: 11px; opacity: 0.8; text-align: center;'>
-            Son güncelleme: <span id='last-update'>-</span>
-        </div>
-    </div>
-
-    <div class='altitude-panel'>
-        <div class='alt-title'>?? İrtifa Bilgileri</div>
-        <div class='coord-row'>
-            <span>?? Roket:</span>
-            <span id='rocket-alt'>0.00 m</span>
-        </div>
-        <div class='coord-row'>
-            <span>?? Payload:</span>
-            <span id='payload-alt'>0.00 m</span>
-        </div>
-        <div class='coord-row'>
-            <span>?? Mesafe:</span>
-            <span id='distance'>0.00 m</span>
-        </div>
-    </div>
 
     <div class='legend-panel'>
-        <div style='font-weight: bold; margin-bottom: 4px;'>?? Açıklama</div>
-        <div>?? Roket Konumu</div>
-        <div>?? Payload Konumu</div>
-        <div>?? Uçuş Rotaları</div>
+        <div style='font-weight: bold; margin-bottom: 4px;'>AÃ§Ä±klama</div>
+        <div>ğŸ”´ Roket Konumu</div>
+        <div>ğŸŸ¢ Payload Konumu</div>
+        <div>ğŸ“UÃ§uÅŸ RotalarÄ±</div>
     </div>
     
     <script>
-        // Harita oluştur - Ankara merkezli
+        // Harita oluÅŸtur - Ankara merkezli
         var map = L.map('map').setView([39.925533, 32.866287], 13);
         
         // OpenStreetMap tile layer ekle
         L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{
-            attribution: '© OpenStreetMap | SİT Telemetri Sistemi',
+            attribution: 'Â© OpenStreetMap | SÄ°T Telemetri Sistemi',
             maxZoom: 18
         }}).addTo(map);
         
-        // Roket marker'ı (kırmızı)
+        // Roket marker'Ä± (kÄ±rmÄ±zÄ±)
         var rocketMarker = L.marker([39.925533, 32.866287], {{
             icon: L.divIcon({{
                 html: '<div class=""rocket-marker""></div>',
@@ -259,7 +228,7 @@ namespace copilot_deneme
             title: 'Roket Konumu'
         }}).addTo(map);
         
-        // Payload marker'ı (yeşil)
+        // Payload marker'Ä± (yeÅŸil)
         var payloadMarker = L.marker([39.925533, 32.866287], {{
             icon: L.divIcon({{
                 html: '<div class=""payload-marker""></div>',
@@ -269,7 +238,7 @@ namespace copilot_deneme
             title: 'Payload Konumu'
         }}).addTo(map);
         
-        // Roket uçuş yolu (kırmızı çizgi)
+        // Roket uÃ§uÅŸ yolu (kÄ±rmÄ±zÄ± Ã§izgi)
         var rocketPath = L.polyline([], {{ 
             color: '#ff4444', 
             weight: 4, 
@@ -277,7 +246,7 @@ namespace copilot_deneme
             dashArray: '8, 8'
         }}).addTo(map);
         
-        // Payload uçuş yolu (yeşil çizgi)
+        // Payload uÃ§uÅŸ yolu (yeÅŸil Ã§izgi)
         var payloadPath = L.polyline([], {{ 
             color: '#44ff44', 
             weight: 4, 
@@ -286,12 +255,12 @@ namespace copilot_deneme
         }}).addTo(map);
         
         // Tooltip'ler ekle
-        rocketMarker.bindTooltip('?? Roket Aracı', {{ permanent: false, direction: 'top' }});
-        payloadMarker.bindTooltip('?? Payload Aracı', {{ permanent: false, direction: 'top' }});
+        rocketMarker.bindTooltip('Roket AracÄ±', {{ permanent: false, direction: 'top' }});
+        payloadMarker.bindTooltip('Payload AracÄ±', {{ permanent: false, direction: 'top' }});
         
         // Mesafe hesaplama
         function calculateDistance(lat1, lon1, lat2, lon2) {{
-            var R = 6371000; // Dünya yarıçapı metre cinsinden
+            var R = 6371000; // DÃ¼nya yarÄ±Ã§apÄ± metre cinsinden
             var dLat = (lat2 - lat1) * Math.PI / 180;
             var dLon = (lon2 - lon1) * Math.PI / 180;
             var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
@@ -301,14 +270,14 @@ namespace copilot_deneme
             return R * c;
         }}
         
-        // C# tarafından çağrılacak JavaScript fonksiyonları
+        // C# tarafÄ±ndan Ã§aÄŸrÄ±lacak JavaScript fonksiyonlarÄ±
         window.updateRocketPosition = function(lat, lon, alt) {{
             if (lat !== 0 && lon !== 0) {{
                 var newPos = [lat, lon];
                 rocketMarker.setLatLng(newPos);
                 rocketPath.addLatLng(newPos);
                 
-                // Koordinat bilgisini güncelle
+                // Koordinat bilgisini gÃ¼ncelle
                 document.getElementById('rocket-coords').textContent = lat.toFixed(6) + ', ' + lon.toFixed(6);
                 document.getElementById('rocket-alt').textContent = alt.toFixed(2) + ' m';
                 updateLastUpdateTime();
@@ -323,7 +292,7 @@ namespace copilot_deneme
                 payloadMarker.setLatLng(newPos);
                 payloadPath.addLatLng(newPos);
                 
-                // Koordinat bilgisini güncelle
+                // Koordinat bilgisini gÃ¼ncelle
                 document.getElementById('payload-coords').textContent = lat.toFixed(6) + ', ' + lon.toFixed(6);
                 document.getElementById('payload-alt').textContent = alt.toFixed(2) + ' m';
                 updateLastUpdateTime();
@@ -383,7 +352,7 @@ namespace copilot_deneme
             document.getElementById('last-update').textContent = timeStr;
         }}
         
-        // İlk güncelleme
+        // Ä°lk gÃ¼ncelleme
         updateLastUpdateTime();
         updateDistance();
     </script>
@@ -397,7 +366,7 @@ namespace copilot_deneme
             
             try
             {
-                // Sadece geçerli koordinatları güncelle
+                // Sadece geÃ§erli koordinatlarÄ± gÃ¼ncelle
                 if (rocketLat != 0 && rocketLon != 0)
                 {
                     _currentRocketLat = rocketLat;
@@ -410,7 +379,7 @@ namespace copilot_deneme
                     _currentPayloadLon = payloadLon;
                 }
                 
-                // JavaScript fonksiyonunu çağır - irtifa bilgisi ile birlikte
+                // JavaScript fonksiyonunu Ã§aÄŸÄ±r - irtifa bilgisi ile birlikte
                 string script = $"updateBothPositions({_currentRocketLat.ToString(CultureInfo.InvariantCulture)}, " +
                                $"{_currentRocketLon.ToString(CultureInfo.InvariantCulture)}, " +
                                $"{rocketAlt.ToString(CultureInfo.InvariantCulture)}, " +
@@ -419,11 +388,11 @@ namespace copilot_deneme
                                $"{payloadAlt.ToString(CultureInfo.InvariantCulture)})";
                 
                 await MapWebView.ExecuteScriptAsync(script);
-                System.Diagnostics.Debug.WriteLine($"sitPage GPS pozisyonları güncellendi - Roket: {_currentRocketLat:F6}, {_currentRocketLon:F6} ({rocketAlt:F2}m) | Payload: {_currentPayloadLat:F6}, {_currentPayloadLon:F6} ({payloadAlt:F2}m)");
+                System.Diagnostics.Debug.WriteLine($"sitPage GPS pozisyonlarÄ± gÃ¼ncellendi - Roket: {_currentRocketLat:F6}, {_currentRocketLon:F6} ({rocketAlt:F2}m) | Payload: {_currentPayloadLat:F6}, {_currentPayloadLon:F6} ({payloadAlt:F2}m)");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"sitPage GPS pozisyon güncelleme hatası: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"sitPage GPS pozisyon gÃ¼ncelleme hatasÄ±: {ex.Message}");
             }
         }
         private const string HtmlTemplate = @"
@@ -477,7 +446,7 @@ camera.up.set(0, 1, 0)
         });
         const mesh = new THREE.Mesh(geometry, material);
 
-        // Otomatik scale (çok büyük/küçük model varsa normalize et)
+        // Otomatik scale (Ã§ok bÃ¼yÃ¼k/kÃ¼Ã§Ã¼k model varsa normalize et)
         geometry.computeBoundingBox();
         const size = geometry.boundingBox.getSize(new THREE.Vector3());
         const maxDim = Math.max(size.x, size.y, size.z);
@@ -488,10 +457,10 @@ camera.up.set(0, 1, 0)
         scene.add(mesh);
         model = mesh;
 
-        console.log('STL model yüklendi ve ortalandı.');
+        console.log('STL model yÃ¼klendi ve ortalandÄ±.');
     },
     function (xhr) { console.log((xhr.loaded / xhr.total * 100) + '% loaded'); },
-    function (error) { console.error('STL yüklenirken hata:', error); }
+    function (error) { console.error('STL yÃ¼klenirken hata:', error); }
 );
 
 
@@ -520,8 +489,8 @@ camera.up.set(0, 1, 0)
 
         private void InitializeDisplay()
         {
-            // İlk değerleri ayarla
-            LastUpdateText.Text = "Bağlantı bekleniyor...";
+            // Ä°lk deÄŸerleri ayarla
+            LastUpdateText.Text = "BaÄŸlantÄ± bekleniyor...";
             DataCountText.Text = "0";
             MaxAltitudeText.Text = "0.00 m";
             CRCText.Text = "0";
@@ -531,134 +500,143 @@ camera.up.set(0, 1, 0)
 
         private void OnSerialDataReceived(string data)
         {
-            // Bu sadece bağlantı durumunu göstermek için
+            // Bu sadece baÄŸlantÄ± durumunu gÃ¶stermek iÃ§in
             _dispatcherQueue.TryEnqueue(() =>
             {
-                LastUpdateText.Text = $"Veri alıyor: {DateTime.Now:HH:mm:ss}";
+                LastUpdateText.Text = $"Veri alÄ±yor: {DateTime.Now:HH:mm:ss}";
             });
         }
 
-        private void OnTelemetryDataUpdated(SerialPortService.TelemetryUpdateData telemetryData)
+        private void OnTelemetryDataUpdated(SerialPortService.RocketTelemetryData rocketData, SerialPortService.PayloadTelemetryData payloadData)
         {
             _dispatcherQueue.TryEnqueue(() =>
             {
                 try
                 {
-                    // Roket verileri
-                    RocketAltitudeText.Text = $"{telemetryData.RocketAltitude:F2} m";
-                    RocketGpsAltitudeText.Text = $"{telemetryData.RocketGpsAltitude:F2} m";
-                    RocketLatitudeText.Text = $"{telemetryData.RocketLatitude:F6}";
-                    RocketLongitudeText.Text = $"{telemetryData.RocketLongitude:F6}";
-                    RocketSpeedText.Text = $"{telemetryData.RocketSpeed:F2} m/s";
-                    RocketTemperatureText.Text = $"{telemetryData.RocketTemperature:F1} °C";
-                    RocketPressureText.Text = $"{telemetryData.RocketPressure:F1} hPa";
+                    // Roket verileri - null kontrolÃ¼ ile
+                   
+                        RocketAltitudeText.Text = $"{rocketData.RocketAltitude:F2} m";
+                        RocketGpsAltitudeText.Text = $"{rocketData.RocketGpsAltitude:F2} m";
+                        RocketLatitudeText.Text = $"{rocketData.RocketLatitude:F6}";
+                        RocketLongitudeText.Text = $"{rocketData.RocketLongitude:F6}";
+                        RocketSpeedText.Text = $"{rocketData.RocketSpeed:F2} m/s";
+                        RocketTemperatureText.Text = $"{rocketData.RocketTemperature:F1} Â°C";
+                        RocketPressureText.Text = $"{rocketData.RocketPressure:F1} hPa";
 
+                        // Jiroskop verileri
+                        GyroXText.Text = $"{rocketData.GyroX:F2} Â°/s";
+                        GyroYText.Text = $"{rocketData.GyroY:F2} Â°/s";
+                        GyroZText.Text = $"{rocketData.GyroZ:F2} Â°/s";
+
+                        // Ä°vme verileri
+                        AccelXText.Text = $"{rocketData.AccelX:F2} m/sÂ²";
+                        AccelYText.Text = $"{rocketData.AccelY:F2} m/sÂ²";
+                        AccelZText.Text = $"{rocketData.AccelZ:F2} m/sÂ²";
+                        AngleText.Text = $"{rocketData.Angle:F2}Â°";
+                    
                     // Payload verileri
-                    PayloadAltitudeText.Text = $"{telemetryData.PayloadAltitude:F2} m";
-                    PayloadLatitudeText.Text = $"{telemetryData.PayloadLatitude:F6}";
-                    PayloadLongitudeText.Text = $"{telemetryData.PayloadLongitude:F6}";
-                    PayloadSpeedText.Text = $"{telemetryData.PayloadSpeed:F2} m/s";
-                    PayloadTemperatureText.Text = $"{telemetryData.PayloadTemperature:F1} °C";
-                    PayloadPressureText.Text = $"{telemetryData.PayloadPressure:F1} hPa";
-                    PayloadHumidityText.Text = $"{telemetryData.PayloadHumidity:F1} %";
+                        PayloadAltitudeText.Text = $"{payloadData.PayloadAltitude:F2} m";
+                        PayloadGPSAltitudeText.Text = $"{payloadData.PayloadGpsAltitude:F2} m";
+                        PayloadLatitudeText.Text = $"{payloadData.PayloadLatitude:F6}";
+                        PayloadLongitudeText.Text = $"{payloadData.PayloadLongitude:F6}";
+                        PayloadSpeedText.Text = $"{payloadData.PayloadSpeed:F2} m/s";
+                        PayloadTemperatureText.Text = $"{payloadData.PayloadTemperature:F1} Â°C";
+                        PayloadPressureText.Text = $"{payloadData.PayloadPressure:F1} hPa";
+                        PayloadHumidityText.Text = $"{payloadData.PayloadHumidity:F1} %";
+                    
 
-                    // Jiroskop verileri
-                    GyroXText.Text = $"{telemetryData.GyroX:F2} °/s";
-                    GyroYText.Text = $"{telemetryData.GyroY:F2} °/s";
-                    GyroZText.Text = $"{telemetryData.GyroZ:F2} °/s";
+                    // GPS haritasÃ½nÃ½ gÃ¼ncelle - gerÃ§ek koordinatlar ve irtifa bilgisi ile
+                    UpdateSitPageGpsPositions(rocketData.RocketLatitude, rocketData.RocketLongitude, rocketData.RocketAltitude,
+                                            payloadData.PayloadLatitude, payloadData.PayloadLongitude, payloadData.PayloadAltitude);
 
-                    // İvme verileri
-                    AccelXText.Text = $"{telemetryData.AccelX:F2} m/s²";
-                    AccelYText.Text = $"{telemetryData.AccelY:F2} m/s²";
-                    AccelZText.Text = $"{telemetryData.AccelZ:F2} m/s²";
-                    AngleText.Text = $"{telemetryData.Angle:F2}°";
+                    // Chart'lara veri gÃ¶nder
+                    SendDataToCharts(rocketData, payloadData);
 
-                    // GPS haritasını güncelle - gerçek koordinatlar ve irtifa bilgisi ile
-                    UpdateSitPageGpsPositions(telemetryData.RocketLatitude, telemetryData.RocketLongitude, telemetryData.RocketAltitude,
-                                            telemetryData.PayloadLatitude, telemetryData.PayloadLongitude, telemetryData.PayloadAltitude);
+                    // Ä°statistikleri gÃ¼ncelle
+                    UpdateStatistics(rocketData, payloadData);
 
-                    // Chart'lara veri gönder
-                    SendDataToCharts(telemetryData);
-
-                    // İstatistikleri güncelle
-                    UpdateStatistics(telemetryData);
-
-                    // Son güncelleme zamanı
+                    // Son gÃ¼ncelleme zamanÄ±
                     LastUpdateText.Text = $"{DateTime.Now:HH:mm:ss}";
 
                     _Counter = (_Counter + 1) % 256;
                     DataCountText.Text = _Counter.ToString();
 
-                    System.Diagnostics.Debug.WriteLine($"sitPage telemetri ve GPS güncellendi - Roket İrtifa: {telemetryData.RocketAltitude:F2}m, Payload İrtifa: {telemetryData.PayloadAltitude:F2}m");
+                    System.Diagnostics.Debug.WriteLine($"sitPage telemetri ve GPS gÃ¼ncellendi - Roket Ä°rtifa: {rocketData?.RocketAltitude:F2}m, Payload Ä°rtifa: {payloadData?.PayloadAltitude:F2}m");
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"sitPage telemetri güncelleme hatası: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"sitPage telemetri gÃ¼ncelleme hatasÄ±: {ex.Message}");
                     LastUpdateText.Text = $"Hata: {DateTime.Now:HH:mm:ss}";
                 }
             });
         }
 
-      
-
-        private void SendDataToCharts(SerialPortService.TelemetryUpdateData telemetryData)
+        private void SendDataToCharts(SerialPortService.RocketTelemetryData rocketData, SerialPortService.PayloadTelemetryData payloadData)
         {
             try
             {
-                // SerialPortService üzerinden chart güncelleme yap
+                // SerialPortService Ã¼zerinden chart gÃ¼ncelleme yap
                 SerialPortService.UpdateChartsFromExternalData(
-                    telemetryData.RocketAltitude,     // Roket altitude
-                    telemetryData.PayloadAltitude,    // Payload altitude
-                    telemetryData.AccelZ,             
-                    telemetryData.AccelY,
-                    telemetryData.AccelX,              
-                    telemetryData.RocketSpeed,        // Roket speed
-                    telemetryData.PayloadSpeed,       // Payload speed
-                    telemetryData.RocketTemperature,  // Roket temperature
-                    telemetryData.PayloadTemperature, // Payload temperature
-                    telemetryData.RocketPressure,     // Roket pressure
-                    telemetryData.PayloadPressure,    // Payload pressure
-                    telemetryData.PayloadHumidity,    // Payload humidity
+                    rocketData.RocketAltitude,     // Roket altitude
+                    payloadData.PayloadAltitude,    // Payload altitude
+                    rocketData.AccelZ,             
+                    rocketData.AccelY,
+                    rocketData.AccelX,              
+                    rocketData.RocketSpeed,        // Roket speed
+                    payloadData.PayloadSpeed,       // Payload speed
+                    rocketData.RocketTemperature,  // Roket temperature
+                    payloadData.PayloadTemperature, // Payload temperature
+                    rocketData.RocketPressure,     // Roket pressure
+                    payloadData.PayloadPressure,    // Payload pressure
+                    payloadData.PayloadHumidity,    // Payload humidity
                     "sitPage"                       // Source
                 );
                 
-                System.Diagnostics.Debug.WriteLine($"sitPage TÜM VERİLER SerialPortService üzerinden chart'lara gönderildi");
+                System.Diagnostics.Debug.WriteLine($" TÃœM VERÄ°LER SerialPortService Ã¼zerinden chart'lara gÃ¶nderildi");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"sitPage chart güncelleme hatası: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($" chart gÃ¼ncelleme hatasÄ±: {ex.Message}");
             }
         }
 
-        private void UpdateStatistics(SerialPortService.TelemetryUpdateData telemetryData)
+        private void UpdateStatistics(SerialPortService.RocketTelemetryData rocketData, SerialPortService.PayloadTelemetryData payloadData)
         {
             try
             {
                 // Maksimum irtifa hesapla
-                float currentMaxAltitude = Math.Max(telemetryData.RocketAltitude, telemetryData.PayloadAltitude);
+                float rocketAlt = rocketData?.RocketAltitude ?? 0;
+                float payloadAlt = payloadData?.PayloadAltitude ?? 0;
+                float currentMaxAltitude = Math.Max(rocketAlt, payloadAlt);
+                
                 if (currentMaxAltitude > _maxAltitude)
                 {
                     _maxAltitude = currentMaxAltitude;
                     MaxAltitudeText.Text = $"{_maxAltitude:F2} m";
                 }
 
-
-                if (telemetryData.CRC >= 0) 
+                // CRC deÄŸerini gÃ¼ncelle - Ã¶nce roket sonra payload
+                if (rocketData?.CRC >= 0) 
                 {
-                    _CRC = telemetryData.CRC;
+                    _CRC = rocketData.CRC;
+                    CRCText.Text = _CRC.ToString();
+                }
+                else if (payloadData?.CRC >= 0)
+                {
+                    _CRC = payloadData.CRC;
                     CRCText.Text = _CRC.ToString();
                 }
 
-                // Team ID değerini güncelle
-                if (telemetryData.TeamID > 0) 
+                // Team ID deÄŸerini gÃ¼ncelle
+                if (rocketData?.TeamID > 0) 
                 {
-                    _TeamID = telemetryData.TeamID;
+                    _TeamID = rocketData.TeamID;
                     TeamIDText.Text = _TeamID.ToString();
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"İstatistik güncelleme hatası: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Ä°statistik gÃ¼ncelleme hatasÄ±: {ex.Message}");
             }
         }
 
@@ -670,25 +648,25 @@ camera.up.set(0, 1, 0)
             if (SerialPortService.ViewModel != null)
             {
                 _viewModel = SerialPortService.ViewModel;
-                System.Diagnostics.Debug.WriteLine("sitPage: ChartViewModel bağlandı");
+                System.Diagnostics.Debug.WriteLine("sitPage: ChartViewModel baÄŸlandÄ±");
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine("sitPage: ChartViewModel bulunamadı!");
+                System.Diagnostics.Debug.WriteLine("sitPage: ChartViewModel bulunamadÄ±!");
             }
             
-            System.Diagnostics.Debug.WriteLine("sitPage navigasyon tamamlandı - GPS harita sistemi hazır");
+            System.Diagnostics.Debug.WriteLine("sitPage navigasyon tamamlandÄ± - GPS harita sistemi hazÄ±r");
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             base.OnNavigatedFrom(e);
             
-            // Event handler'ları kaldır
+            // Event handler'larÄ± kaldÄ±r
             SerialPortService.OnTelemetryDataUpdated -= OnTelemetryDataUpdated;
             SerialPortService.OnDataReceived -= OnSerialDataReceived;
             SerialPortService.OnRotationDataReceived -= OnRotationDataReceived;
-            System.Diagnostics.Debug.WriteLine("sitPage'den ayrıldı - Event handler'lar kaldırıldı");
+            System.Diagnostics.Debug.WriteLine("sitPage'den ayrÄ±ldÄ± - Event handler'lar kaldÄ±rÄ±ldÄ±");
         }
     }
 }
