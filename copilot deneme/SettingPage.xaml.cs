@@ -19,11 +19,11 @@ namespace copilot_deneme
         {
             this.InitializeComponent();
             _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
-            
+
             var viewModel = new ChartViewModel();
             this.DataContext = viewModel;
             _viewModel = viewModel; // Aynı instance'ı kullan
-            
+
             SerialPortService.ViewModel = _viewModel;
             SerialPortService.Dispatcher = _dispatcherQueue;
 
@@ -33,14 +33,14 @@ namespace copilot_deneme
             RefreshAvailablePorts();
             BaudRateComboBox_Input.SelectedIndex = 0;
             BaudRateComboBox_Output.SelectedIndex = 0;
-            
-  
+
+
         }
 
         private void RefreshPorts_Click(object sender, RoutedEventArgs e)
         {
             RefreshAvailablePorts();
-           
+
             System.Diagnostics.Debug.WriteLine("Ports refreshed");
         }
         private void OnHYIPacketReceived(SerialPortService.HYITelemetryData data)
@@ -56,7 +56,7 @@ namespace copilot_deneme
         {
             string[] availablePorts = SerialPortService.GetAvailablePorts();
             string[] availableOutputPorts = SerialPortService.GetAvailableOutputPorts();
-            
+
             var inputSelection = PortComboBox_Input.SelectedItem as string;
             var outputSelection = PortComboBox_Output.SelectedItem as string;
 
@@ -64,11 +64,11 @@ namespace copilot_deneme
             PortComboBox_Output.ItemsSource = availableOutputPorts;
 
             // Input port selection logic
-            if (availablePorts.Contains(inputSelection)) 
+            if (availablePorts.Contains(inputSelection))
             {
                 PortComboBox_Input.SelectedItem = inputSelection;
             }
-            else if (availablePorts.Length > 0) 
+            else if (availablePorts.Length > 0)
             {
                 PortComboBox_Input.SelectedIndex = 0;
             }
@@ -78,11 +78,11 @@ namespace copilot_deneme
             }
 
             // Output port selection logic - ensure it's different from input port if possible
-            if (availableOutputPorts.Contains(outputSelection)) 
+            if (availableOutputPorts.Contains(outputSelection))
             {
                 PortComboBox_Output.SelectedItem = outputSelection;
             }
-            else if (availableOutputPorts.Length > 0) 
+            else if (availableOutputPorts.Length > 0)
             {
                 PortComboBox_Output.SelectedIndex = 0;
             }
@@ -93,16 +93,16 @@ namespace copilot_deneme
             }
 
             // Update status messages
-            StatusText_Input.Text = availablePorts.Length > 0 
-                ? $"{availablePorts.Length} port bulundu." 
+            StatusText_Input.Text = availablePorts.Length > 0
+                ? $"{availablePorts.Length} port bulundu."
                 : "Hiç port bulunamadı.";
-                
-            StatusText_Output.Text = availableOutputPorts.Length > 0 
-                ? $"{availableOutputPorts.Length} çıkış portu mevcut." 
-                : (availablePorts.Length > 0 
-                    ? "Çıkış için ek port gerekli (giriş portu kullanımda)." 
+
+            StatusText_Output.Text = availableOutputPorts.Length > 0
+                ? $"{availableOutputPorts.Length} çıkış portu mevcut."
+                : (availablePorts.Length > 0
+                    ? "Çıkış için ek port gerekli (giriş portu kullanımda)."
                     : "Hiç port bulunamadı.");
-            
+
             // Debug log available ports
             System.Diagnostics.Debug.WriteLine($"Available input ports: {string.Join(", ", availablePorts)}");
             System.Diagnostics.Debug.WriteLine($"Available output ports: {string.Join(", ", availableOutputPorts)}");
@@ -113,17 +113,17 @@ namespace copilot_deneme
             try
             {
                 var portName = PortComboBox_Input.SelectedItem as string;
-                if (string.IsNullOrEmpty(portName)) 
+                if (string.IsNullOrEmpty(portName))
                 {
                     throw new InvalidOperationException("Giriş için bir port seçin.");
                 }
-                
+
                 // Verify port exists
                 if (!SerialPortService.GetAvailablePorts().Contains(portName))
                 {
                     throw new InvalidOperationException($"Port {portName} mevcut değil. Portları yenileyin.");
                 }
-                
+
                 var baudRate = int.Parse((BaudRateComboBox_Input.SelectedItem as ComboBoxItem).Content.ToString());
 
                 // SerialPortService'i kullan
@@ -132,10 +132,10 @@ namespace copilot_deneme
 
                 StatusIndicator_Input.Fill = new SolidColorBrush(Colors.LightGreen);
                 StatusText_Input.Text = $"Bağlandı: {portName}";
-                
+
                 // Refresh output ports to exclude the newly connected input port
                 RefreshAvailablePorts();
-                
+
                 System.Diagnostics.Debug.WriteLine($"Input port connected successfully: {portName}");
             }
             catch (Exception ex)
@@ -153,10 +153,10 @@ namespace copilot_deneme
                 SerialPortService.StopReading();
                 StatusIndicator_Input.Fill = new SolidColorBrush(Colors.Red);
                 StatusText_Input.Text = "Giriş Portu Kapalı";
-                
+
                 // Refresh ports to make the disconnected port available for output
                 RefreshAvailablePorts();
-                
+
                 System.Diagnostics.Debug.WriteLine("Input port disconnected");
             }
             catch (Exception ex)
